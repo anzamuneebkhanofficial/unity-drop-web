@@ -57,10 +57,9 @@ export function middleware(req) {
   // 2) Public routes
   // ---------------------
   if (isPublic) {
-    if (role || token) {
+    if (role && token) {
       const dashboard = defaultRoutes[role];
-      // ✅ avoid looping if already on dashboard
-      if (pathname !== dashboard) {
+      if (dashboard && pathname !== dashboard) {
         return NextResponse.redirect(new URL(dashboard, req.url));
       }
     }
@@ -90,7 +89,6 @@ export function middleware(req) {
       (route) => pathname === route || pathname.startsWith(route)
     );
     if (isAllowed) return NextResponse.next();
-    // ✅ avoid redirect loop
     if (pathname !== defaultRoutes.donor) {
       return NextResponse.redirect(new URL(defaultRoutes.donor, req.url));
     }
@@ -101,7 +99,6 @@ export function middleware(req) {
       (route) => pathname === route || pathname.startsWith(route)
     );
     if (isAllowed) return NextResponse.next();
-    // ✅ avoid redirect loop
     if (pathname !== defaultRoutes.patient) {
       return NextResponse.redirect(new URL(defaultRoutes.patient, req.url));
     }
