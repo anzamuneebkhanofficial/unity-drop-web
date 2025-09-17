@@ -3,19 +3,8 @@ import { NextResponse } from 'next/server';
 
 export function middleware(req) {
   const token = req.cookies.get('accessToken')?.value;
-  const auth = req.cookies.get('is_auth')?.value;
   const role = req.cookies.get('role')?.value;
   const { pathname } = req.nextUrl;
-
-  // console.log('Middleware → Path:', pathname);
-  // console.log(
-  //   'auth:',
-  //   auth,
-  //   'token:',
-  //   token ? 'yes' : 'no',
-  //   'role:',
-  //   role || 'none'
-  // );
 
   // ---------------------
   // Public routes
@@ -26,11 +15,13 @@ export function middleware(req) {
     '/admin/register',
     '/admin/forgot-password',
     /^\/admin\/reset-password\/[^/]+\/[^/]+$/,
+
     '/donor/register',
     '/donor/email-verify',
     '/donor/login',
     '/donor/forgot-password',
     /^\/donor\/reset-password\/[^/]+\/[^/]+$/,
+
     '/patient/register',
     '/patient/email-verify',
     '/patient/login',
@@ -43,20 +34,8 @@ export function middleware(req) {
   );
 
   // ---------------------
-  // Allowed routes per role
+  // Default dashboards
   // ---------------------
-  const donorRoutes = ['/donor/dashboard'];
-
-  const patientRoutes = [
-    '/patient/dashboard',
-    '/patient/dashboard/profile',
-    '/patient/dashboard/profile/update',
-    '/patient/dashboard/change-password',
-    '/patient/dashboard/feedback',
-    '/patient/dashboard/donors',
-    '/patient/dashboard/responses',
-  ];
-
   const defaultRoutes = {
     admin: '/admin/dashboard',
     donor: '/donor/dashboard',
@@ -64,22 +43,27 @@ export function middleware(req) {
   };
 
   // ---------------------
-  // 1) Allow public routes
+  // Role route patterns
   // ---------------------
-  if (isPublic) {
-    if (role) {
-      // Logged-in user trying to access public route → redirect to their dashboard
-      return NextResponse.redirect(
-        new URL(defaultRoutes[role] || '/', req.url)
-      );
-    }
-    return NextResponse.next();
-  }
+  const donorRoutes = ['/donor/dashboard'];
+  const patientRoutes = ['/patient/dashboard'];
 
   // ---------------------
-  // 2) Always allow home "/"
+  // 1) Always allow home
   // ---------------------
-  if (pathname === '/') {
+  if (pathname === '/') return NextResponse.next();
+
+  // ---------------------
+  // 2) Public routes
+  // ---------------------
+  if (isPublic) {
+    if (role || token) {
+      const dashboard = defaultRoutes[role];
+      // ✅ avoid looping if already on dashboard
+      if (pathname !== dashboard) {
+        return NextResponse.redirect(new URL(dashboard, req.url));
+      }
+    }
     return NextResponse.next();
   }
 
@@ -87,7 +71,6 @@ export function middleware(req) {
   // 3) Protected route check
   // ---------------------
   if (!role || !token) {
-    // If not logged in, redirect to proper login page
     if (pathname.startsWith('/admin')) {
       return NextResponse.redirect(new URL('/admin/login', req.url));
     } else if (pathname.startsWith('/donor')) {
@@ -100,23 +83,28 @@ export function middleware(req) {
   // ---------------------
   // 4) Role-based access
   // ---------------------
-  if (role === 'admin') {
-    return NextResponse.next();
-  }
+  if (role === 'admin') return NextResponse.next();
 
   if (role === 'donor') {
     const isAllowed = donorRoutes.some(
-      (route) => pathname === route || pathname.startsWith(route + '/')
-      // (route) => pathname === route
+      (route) => pathname === route || pathname.startsWith(route)
     );
     if (isAllowed) return NextResponse.next();
-    return NextResponse.redirect(new URL(defaultRoutes.donor, req.url));
+    // ✅ avoid redirect loop
+    if (pathname !== defaultRoutes.donor) {
+      return NextResponse.redirect(new URL(defaultRoutes.donor, req.url));
+    }
   }
 
   if (role === 'patient') {
-    const isAllowed = patientRoutes.some((route) => pathname === route);
+    const isAllowed = patientRoutes.some(
+      (route) => pathname === route || pathname.startsWith(route)
+    );
     if (isAllowed) return NextResponse.next();
-    return NextResponse.redirect(new URL(defaultRoutes.patient, req.url));
+    // ✅ avoid redirect loop
+    if (pathname !== defaultRoutes.patient) {
+      return NextResponse.redirect(new URL(defaultRoutes.patient, req.url));
+    }
   }
 
   // ---------------------
@@ -125,9 +113,6 @@ export function middleware(req) {
   return NextResponse.redirect(new URL('/donor/login', req.url));
 }
 
-// ---------------------
-// Apply middleware to all routes except Next.js internals
-// ---------------------
 export const config = {
   matcher: ['/((?!_next|static|favicon.ico).*)'],
 };
