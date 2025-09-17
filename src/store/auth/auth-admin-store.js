@@ -127,30 +127,39 @@ export const useAdminAuthStore = create(
       },
       register: async (formData, captchaToken) => {
         set({ loading: true, error: null, success: null });
+
         try {
-          const res = await apiWrapper.post(
-            '/admin/register',
-            formData,
-            captchaToken
-          );
+          const payload = {
+            ...formData,
+            captchaToken,
+          };
+
+          const res = await apiWrapper.post('/admin/register', payload);
           const data = res.data;
-          if (!data.success) {
-            // ❌ Validation or business rule failed
+          // console.log('data', data);
+          if (data.success && data.data) {
+            set({
+              user: data.data,
+              success: data.message,
+            });
+            return data.data;
+          } else {
             set({ error: data.message || data.error });
             return null;
           }
-          // ✅ Registration success
-          set({ success: data.message });
-
-          return data.newUser;
         } catch (err) {
-          const backendError = err.response?.data?.error;
-          set({ error: backendError });
+          set({
+            error:
+              err.response?.data?.error ||
+              err.response?.data?.message ||
+              err.message,
+          });
           return null;
         } finally {
           set({ loading: false });
         }
       },
+
       changePassword: async (password, password_confirmation) => {
         set({ loading: true, error: null, success: null });
         try {

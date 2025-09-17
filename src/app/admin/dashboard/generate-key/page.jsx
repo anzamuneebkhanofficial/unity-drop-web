@@ -4,9 +4,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAdminAuthStore } from '@/store/auth/auth-admin-store';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 const SuperKeyGenerator = () => {
   const [keyInfo, setKeyInfo] = useState(null);
+  const router = useRouter();
   const {
     generateSuperKey,
     getSuperKey,
@@ -29,6 +31,7 @@ const SuperKeyGenerator = () => {
 
   const handleGenerate = async () => {
     const result = await generateSuperKey(superAdminId);
+    if (result) router.push('/admin/dashboard');
     // console.log('result', result);
   };
   useEffect(() => {

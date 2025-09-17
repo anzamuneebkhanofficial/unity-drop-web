@@ -28,6 +28,7 @@ const registerSchema = yup.object().shape({
 
 const AdminRegister = () => {
   const [captchaToken, setCaptchaToken] = useState('');
+  // console.log('captchaToken', captchaToken);
   const router = useRouter();
   const {
     register: registerAdmin,
@@ -62,8 +63,9 @@ const AdminRegister = () => {
       return;
     }
     const result = await registerAdmin(data, captchaToken);
+    // console.log('result', result);
     if (result) {
-      router.push('/email-verify');
+      router.push('/admin/email-verify');
     }
   };
 
@@ -146,15 +148,9 @@ const AdminRegister = () => {
                 control={control}
                 render={({ field }) => (
                   <input
-                    {...field}
-                    type="number" // ✅ accept only numbers
+                    {...field} // ✅ this already includes value + onChange
+                    type="text"
                     placeholder="Need Key to register (ask the App Owner)"
-                    value={field.value}
-                    onChange={(e) => {
-                      // ensure only numbers are set
-                      const numericValue = e.target.value.replace(/\D/g, '');
-                      field.onChange(numericValue);
-                    }}
                     className="w-full pl-3 bg-neutral-950 border border-neutral-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
                   />
                 )}

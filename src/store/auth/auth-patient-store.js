@@ -58,12 +58,17 @@ export const usePatientAuthStore = create(
       register: async (formData, captchaToken) => {
         set({ loading: true, error: null, success: null });
         try {
+          const payload = {
+            ...formData,
+            captchaToken,
+          };
+          // console.log('payload', payload);
           const res = await apiWrapper.post(
             '/patient/patient-register',
-            formData,
-            captchaToken
+            payload
           );
           const data = res.data;
+          // console.log('data', data);
           if (data.patient && data.message) {
             set({ success: data.message });
             return data.patient;

@@ -56,11 +56,11 @@ export const useDonorAuthStore = create(
       register: async (formData, captchaToken) => {
         set({ loading: true, error: null, success: null });
         try {
-          const res = await apiWrapper.post(
-            '/donor/donor-register',
-            formData,
-            captchaToken
-          );
+          const payload = {
+            ...formData,
+            captchaToken,
+          };
+          const res = await apiWrapper.post('/donor/donor-register', payload);
           const data = res.data;
           // console.log('data Register', data);
           if (data.donor && data.message) {
