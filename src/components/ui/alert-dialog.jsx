@@ -1,0 +1,127 @@
+/** @format */
+
+'use client';
+
+import * as React from 'react';
+import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog';
+
+import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button';
+
+function AlertDialog({ ...props }) {
+  return <AlertDialogPrimitive.Root {...props} />;
+}
+
+function AlertDialogTrigger({ ...props }) {
+  return <AlertDialogPrimitive.Trigger {...props} />;
+}
+
+function AlertDialogPortal({ ...props }) {
+  return <AlertDialogPrimitive.Portal {...props} />;
+}
+
+function AlertDialogOverlay({ className, ...props }) {
+  return (
+    <AlertDialogPrimitive.Overlay
+      className={cn(
+        'data-[state=open]:animate-in data-[state=closed]:animate-out fixed inset-0 z-50 bg-[#0a0a0a]/80',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+function AlertDialogContent({ className, ...props }) {
+  return (
+    <AlertDialogPortal>
+      <AlertDialogOverlay />
+      <AlertDialogPrimitive.Content
+        className={cn(
+          'bg-[#0a0a0a] text-[#ffffff] data-[state=open]:animate-in data-[state=closed]:animate-out fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border border-[#fdc700] p-6 shadow-lg duration-200 sm:max-w-lg',
+          className
+        )}
+        {...props}
+      />
+    </AlertDialogPortal>
+  );
+}
+
+function AlertDialogHeader({ className, ...props }) {
+  return (
+    <div
+      className={cn('flex flex-col gap-2 text-center sm:text-left', className)}
+      {...props}
+    />
+  );
+}
+
+function AlertDialogFooter({ className, ...props }) {
+  return (
+    <div
+      className={cn(
+        'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+function AlertDialogTitle({ className, ...props }) {
+  return (
+    <AlertDialogPrimitive.Title
+      className={cn('text-lg font-semibold text-[#fdc700]', className)}
+      {...props}
+    />
+  );
+}
+
+function AlertDialogDescription({ className, ...props }) {
+  return (
+    <AlertDialogPrimitive.Description
+      className={cn('text-sm text-[#ffffff]/80', className)}
+      {...props}
+    />
+  );
+}
+
+function AlertDialogAction({ className, ...props }) {
+  return (
+    <AlertDialogPrimitive.Action
+      className={cn(
+        buttonVariants(),
+        'bg-[#fdc700] text-[#0a0a0a] hover:bg-[#e6b800]',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+function AlertDialogCancel({ className, ...props }) {
+  return (
+    <AlertDialogPrimitive.Cancel
+      className={cn(
+        buttonVariants(),
+        'bg-[#ffffff] text-[#0a0a0a] hover:bg-[#e6b800]',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+export {
+  AlertDialog,
+  AlertDialogPortal,
+  AlertDialogOverlay,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+};
