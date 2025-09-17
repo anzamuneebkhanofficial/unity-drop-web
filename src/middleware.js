@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server';
 
 export function middleware(req) {
-  const token = req.cookies.get('accessToken')?.value;
   const role = req.cookies.get('role')?.value;
   const { pathname } = req.nextUrl;
 
@@ -57,7 +56,7 @@ export function middleware(req) {
   // 2) Public routes
   // ---------------------
   if (isPublic) {
-    if (role && token) {
+    if (role) {
       const dashboard = defaultRoutes[role];
       if (dashboard && pathname !== dashboard) {
         return NextResponse.redirect(new URL(dashboard, req.url));
@@ -69,7 +68,7 @@ export function middleware(req) {
   // ---------------------
   // 3) Protected route check
   // ---------------------
-  if (!role || !token) {
+  if (!role) {
     if (pathname.startsWith('/admin')) {
       return NextResponse.redirect(new URL('/admin/login', req.url));
     } else if (pathname.startsWith('/donor')) {
