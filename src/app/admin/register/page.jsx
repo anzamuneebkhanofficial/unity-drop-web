@@ -2,15 +2,17 @@
 'use client';
 
 import CaptchaField from '@/components/common/CaptchaField';
-import { useAdminAuthStore } from '@/store/auth/auth-admin-store';
+import { useAdminAuthStore } from '@/store/auth/authAdminStore';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { QrCodeIcon, Mail, Lock, Phone, User } from 'lucide-react';
+import { Mail, Phone, User, MapPin } from 'lucide-react';
+import PasswordField from '@/components/common/PasswordField';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as yup from 'yup';
+import LocationPicker from '@/components/common/LocationPicker';
 
 // ✅ Validation schema
 const registerSchema = yup.object().shape({
@@ -22,26 +24,26 @@ const registerSchema = yup.object().shape({
     .oneOf([yup.ref('password')], 'Passwords must match'),
   gender: yup.string().required('Gender is required'),
   phone: yup.string().required('Phone number is required'),
+  location: yup.string().required('Location is required'),
   availabilityStatus: yup.boolean(),
-  key: yup.string().required('Super Key is required'),
+  latitude: yup.mixed().optional(),
+  longitude: yup.mixed().optional(),
 });
 
 const AdminRegister = () => {
   const [captchaToken, setCaptchaToken] = useState('');
-  // console.log('captchaToken', captchaToken);
+  const [isLimitReached, setIsLimitReached] = useState(false);
   const router = useRouter();
   const {
     register: registerAdmin,
+    getAdminStatus,
     loading,
-    error,
-    success,
-    resetMessages,
   } = useAdminAuthStore();
 
   const {
     handleSubmit,
     control,
-    reset,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(registerSchema),
@@ -52,279 +54,232 @@ const AdminRegister = () => {
       password_confirmation: '',
       gender: '',
       phone: '',
+      location: '',
       availabilityStatus: false,
-      key: '',
+      latitude: '',
+      longitude: '',
     },
   });
 
+  useEffect(() => {
+    const checkQuota = async () => {
+      const status = await getAdminStatus();
+      if (status && status.limitReached) {
+        setIsLimitReached(true);
+      }
+    };
+    checkQuota();
+  }, [getAdminStatus]);
+
   const onSubmit = async (data) => {
+    if (isLimitReached) {
+      toast.error('Administrator quota is full. Registration is disabled.');
+      return;
+    }
     if (!captchaToken) {
-      toast.error('Please verify captcha');
+      toast.error('Verification pending or failed. Please refresh the page.');
       return;
     }
     const result = await registerAdmin(data, captchaToken);
-    // console.log('result', result);
     if (result) {
-      router.push('/admin/email-verify');
+      router.replace('/admin/email-verify');
     }
   };
 
-  useEffect(() => {
-    if (success) toast.success(success);
-    if (error) toast.error(error);
-
-    if (success || error) {
-      reset();
-      resetMessages();
-    }
-  }, [success, error, reset, resetMessages]);
-
   return (
-    <div className="flex min-h-screen bg-neutral-950 text-white">
-      {/* Left brand panel */}
-      <div className="hidden md:flex flex-col justify-center items-center w-1/2 bg-gradient-to-br from-neutral-800 to-neutral-900 p-10">
-        <QrCodeIcon className="h-20 w-20 text-yellow-400 mb-6" />
-        <h1 className="text-4xl font-extrabold tracking-tight">Admin Panel</h1>
-        <p className="text-gray-400 mt-4 text-lg text-center max-w-sm">
-          Manage the blood donor system securely. Fast, reliable, and powerful.
-        </p>
+    <div className="flex min-h-screen bg-bg text-white overflow-hidden relative">
+      {/* Sticky Top Warning Banner */}
+      {isLimitReached && (
+        <div className="absolute top-0 left-0 w-full bg-red-600 text-white font-bold text-center py-3 z-50 shadow-lg">
+          Admin quota is full. Registration is disabled. Please use the{' '}
+          <Link href="/public-feedback" className="underline hover:text-white/80 transition-colors">
+            Public Feedback form
+          </Link>{' '}
+          to request access.
+        </div>
+      )}
+
+      {/* Left Brand Panel - Narrower for register */}
+      <div className="hidden lg:flex flex-col justify-center items-center w-2/5 relative overflow-hidden bg-surface pt-12">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--donor-hex),0.15),transparent_70%)] animate-pulse"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-white/5 rounded-full opacity-20"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] border border-white/5 rounded-full opacity-30"></div>
+
+        <div className="relative z-10 flex flex-col items-center text-center p-8 space-y-6">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-donor to-donor/60 flex items-center justify-center shadow-[0_0_40px_rgba(var(--donor-hex),0.4)] border border-white/10">
+            <span className="text-white font-black text-3xl tracking-tighter italic drop-shadow-lg">U</span>
+          </div>
+          <div className="space-y-3">
+            <h1 className="text-4xl font-black tracking-tighter italic uppercase text-white leading-none">
+              UNITYDROP <br />
+              <span className="text-donor">ADMIN PORTAL</span>
+            </h1>
+            <p className="text-text-dim font-bold text-sm uppercase tracking-widest max-w-xs">
+              Admin Registration
+            </p>
+          </div>
+          <div className="flex items-center gap-3 pt-6">
+            <div className="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-text-dim">
+              Verified Access
+            </div>
+            <div className="px-4 py-1.5 bg-donor/10 border border-donor/20 rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-donor">
+              Secure Network
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Right register form */}
-      <div className="flex flex-1 items-center justify-center p-6">
+      {/* Right Form Panel - Wider for more fields */}
+      <div className="flex flex-1 items-start justify-center p-6 md:p-10 overflow-y-auto min-h-screen pt-20">
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="bg-neutral-900 border border-neutral-700 p-10 rounded-2xl shadow-2xl w-full max-w-md space-y-6"
+          className={`bg-surface-2/40 backdrop-blur-3xl border border-white/10 p-8 md:p-10 rounded-[2rem] shadow-[0_0_80px_rgba(0,0,0,0.7)] w-full max-w-2xl space-y-5 relative z-10 my-8 theme-admin ${isLimitReached ? 'opacity-50 pointer-events-none grayscale' : ''}`}
         >
-          <div className="flex flex-col items-center gap-3">
-            <Link
-              href="/patient/register"
-              className="text-sm text-yellow-400 hover:text-yellow-300 hover:underline transition"
-            >
-              Register as Patient
-            </Link>
-            <Link
-              href="/donor/register"
-              className="text-sm text-yellow-400 hover:text-yellow-300 hover:underline transition"
-            >
-              Register as Donor
-            </Link>
-            <div className="w-20 border-t border-gray-600 mt-2"></div>
+          {/* Header */}
+          <div className="space-y-1.5 text-center">
+            <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Admin Registration</h2>
+            <p className="text-text-dim text-[10px] font-black uppercase tracking-[0.3em]">Fill in your details</p>
           </div>
 
-          <h2 className="text-3xl font-bold text-center text-yellow-400">
-            Admin Register
-          </h2>
-
-          {/* Full Name */}
-          <div>
-            <label className="block text-gray-400 mb-2">Full Name</label>
-            <div className="relative">
-              <User className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
-              <Controller
-                name="fullName"
-                control={control}
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    placeholder="Enter full name"
-                    className="w-full pl-10 bg-neutral-950 border border-neutral-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                  />
-                )}
-              />
+          {/* Fields in 2-column grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Full Name */}
+            <div className="formGroup group">
+              <label className="formLabel">Full Name</label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim group-focus-within:text-highlight transition-colors" />
+                <Controller name="fullName" control={control} render={({ field }) => (
+                  <input {...field} disabled={isLimitReached} placeholder="Enter Full Name" className="inputField pl-14" />
+                )} />
+              </div>
+              {errors.fullName && <p className="formError">{errors.fullName.message}</p>}
             </div>
-            {errors.fullName && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.fullName.message}
-              </p>
-            )}
-          </div>
-          {/* Super Key */}
-          <div>
-            <label className="block text-gray-400 mb-2">Super Key</label>
-            <div className="relative flex items-center gap-2">
-              <Controller
-                name="key"
-                control={control}
-                render={({ field }) => (
-                  <input
-                    {...field} // ✅ this already includes value + onChange
-                    type="text"
-                    placeholder="Need Key to register (ask the App Owner)"
-                    className="w-full pl-3 bg-neutral-950 border border-neutral-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                  />
-                )}
-              />
-            </div>
-            {errors.key && (
-              <p className="text-red-500 text-sm mt-1">{errors.key.message}</p>
-            )}
-          </div>
 
-          {/* Email */}
-          <div>
-            <label className="block text-gray-400 mb-2">Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
-              <Controller
-                name="email"
-                control={control}
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    placeholder="Enter email"
-                    className="w-full pl-10 bg-neutral-950 border border-neutral-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                  />
-                )}
-              />
+            {/* Email */}
+            <div className="formGroup group">
+              <label className="formLabel">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim group-focus-within:text-highlight transition-colors" />
+                <Controller name="email" control={control} render={({ field }) => (
+                  <input {...field} disabled={isLimitReached} type="email" placeholder="Enter Email" className="inputField pl-14" />
+                )} />
+              </div>
+              {errors.email && <p className="formError">{errors.email.message}</p>}
             </div>
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
 
-          {/* Password */}
-          <div>
-            <label className="block text-gray-400 mb-2">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
-              <Controller
-                name="password"
-                control={control}
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    type="password"
-                    placeholder="Enter password"
-                    className="w-full pl-10 bg-neutral-950 border border-neutral-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                  />
-                )}
-              />
+            {/* Phone */}
+            <div className="formGroup group">
+              <label className="formLabel">Phone</label>
+              <div className="relative">
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim group-focus-within:text-highlight transition-colors" />
+                <Controller name="phone" control={control} render={({ field }) => (
+                  <input {...field} disabled={isLimitReached} placeholder="Phone Number" className="inputField pl-14" />
+                )} />
+              </div>
+              {errors.phone && <p className="formError">{errors.phone.message}</p>}
             </div>
-            {errors.password && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
 
-          {/* Confirm Password */}
-          <div>
-            <label className="block text-gray-400 mb-2">Confirm Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
-              <Controller
-                name="password_confirmation"
-                control={control}
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    type="password"
-                    placeholder="Confirm password"
-                    className="w-full pl-10 bg-neutral-950 border border-neutral-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                  />
-                )}
-              />
+            {/* Password */}
+            <div className="formGroup group">
+              <Controller name="password" control={control} render={({ field }) => (
+                <PasswordField
+                  field={field}
+                  label="Password"
+                  placeholder="Enter Password"
+                  error={errors.password?.message}
+                  disabled={isLimitReached}
+                />
+              )} />
             </div>
-            {errors.password_confirmation && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.password_confirmation.message}
-              </p>
-            )}
-          </div>
 
-          {/* Gender */}
-          <div>
-            <label className="block text-gray-400 mb-2">Gender</label>
-            <Controller
-              name="gender"
-              control={control}
-              render={({ field }) => (
-                <select
-                  {...field}
-                  className="w-full bg-neutral-950 border border-neutral-700 text-gray-400 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                >
+            {/* Confirm Password */}
+            <div className="formGroup group">
+              <Controller name="password_confirmation" control={control} render={({ field }) => (
+                <PasswordField field={field} label="Confirm Password" placeholder="Repeat Password" error={errors.password_confirmation?.message} disabled={isLimitReached} />
+              )} />
+            </div>
+
+            {/* Gender */}
+            <div className="formGroup group">
+              <label className="formLabel">Gender</label>
+              <Controller name="gender" control={control} render={({ field }) => (
+                <select {...field} disabled={isLimitReached} className="selectField">
                   <option value="">Select Gender</option>
-                  <option value="Male" className="text-white">
-                    Male
-                  </option>
-                  <option value="Female" className="text-white">
-                    Female
-                  </option>
-                  <option value="Other" className="text-white">
-                    Other
-                  </option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
                 </select>
-              )}
-            />
-            {errors.gender && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.gender.message}
-              </p>
-            )}
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="block text-gray-400 mb-2">Phone</label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
-              <Controller
-                name="phone"
-                control={control}
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    placeholder="Enter phone number"
-                    className="w-full pl-10 bg-neutral-950 border border-neutral-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                  />
-                )}
-              />
+              )} />
+              {errors.gender && <p className="formError">{errors.gender.message}</p>}
             </div>
-            {errors.phone && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.phone.message}
-              </p>
-            )}
+
+            {/* Location */}
+            <div className="formGroup group">
+              <label className="formLabel">Location</label>
+              <div className="relative">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim group-focus-within:text-highlight transition-colors" />
+                <Controller name="location" control={control} render={({ field }) => (
+                  <input {...field} disabled={isLimitReached} placeholder="City / Region" className="inputField pl-14" />
+                )} />
+              </div>
+              <LocationPicker
+                className="mt-1"
+                onLocationDetected={({ latitude, longitude, city, address }) => {
+                  if (isLimitReached) return;
+                  setValue('latitude', latitude);
+                  setValue('longitude', longitude);
+                  if (city || address) {
+                    setValue('location', city || address);
+                  }
+                }}
+              />
+              {errors.location && <p className="formError">{errors.location.message}</p>}
+            </div>
           </div>
 
           {/* Availability */}
-          <div className="flex items-center space-x-2">
-            <Controller
-              name="availabilityStatus"
-              control={control}
-              render={({ field }) => (
-                <input type="checkbox" {...field} className="h-4 w-4" />
-              )}
-            />
-            <span className="text-gray-300">Available</span>
+          <div className="flex items-center gap-3 px-1">
+            <Controller name="availabilityStatus" control={control} render={({ field }) => (
+              <input type="checkbox" {...field} disabled={isLimitReached} checked={field.value} className="h-4 w-4 accent-highlight rounded" />
+            )} />
+            <span className="text-text-dim text-xs font-bold">Available</span>
           </div>
 
-          {/* Error / Success */}
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          {success && <p className="text-green-500 text-sm">{success}</p>}
-          {/* Captcha */}
-          <CaptchaField onVerify={setCaptchaToken} />
-          {/* Submit */}
+          {!isLimitReached && <CaptchaField onVerify={setCaptchaToken} />}
+
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-yellow-400 text-black font-semibold py-3 rounded-lg hover:bg-yellow-500 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading || isLimitReached}
+            className="w-full bg-highlight hover:bg-highlight/90 text-black font-black uppercase tracking-[0.2em] text-xs py-5 rounded-xl transition-all shadow-[0_10px_30px_rgba(var(--highlight-hex),0.2)] active:scale-[0.98] disabled:opacity-50"
           >
-            {loading ? 'Registering...' : 'Register'}
+            {loading ? 'Registering Please Wait...' : 'Submit'}
           </button>
 
-          <p className="text-sm text-gray-400 text-center">
-            Already have an account?{' '}
-            <Link
-              href="/admin/login"
-              className="text-yellow-400 hover:text-yellow-300 hover:underline"
-            >
-              Login
-            </Link>
-          </p>
+          {/* Footer Links */}
+          <div className="space-y-4 pt-2">
+            <div className="text-center">
+              <p className="text-[10px] font-bold text-text-dim">
+                Already registered?{' '}
+                <Link href="/admin/login" className="text-highlight hover:text-white transition-colors font-black uppercase tracking-wider pointer-events-auto">
+                  Login Here
+                </Link>
+              </p>
+            </div>
+
+            <div className="h-px bg-white/5 w-full"></div>
+
+            <div className="flex flex-col items-center gap-3">
+              <p className="text-[9px] font-black text-text-dim uppercase tracking-[0.3em]">Register As</p>
+              <div className="flex gap-3">
+                <Link href="/patient/register" className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-white hover:bg-white/10 transition-all pointer-events-auto">
+                  Patient Register
+                </Link>
+                <Link href="/donor/register" className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-white hover:bg-white/10 transition-all pointer-events-auto">
+                  Donor Register
+                </Link>
+              </div>
+            </div>
+          </div>
         </form>
       </div>
     </div>

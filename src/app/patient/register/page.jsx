@@ -2,20 +2,20 @@
 'use client';
 
 import CaptchaField from '@/components/common/CaptchaField';
-import { usePatientAuthStore } from '@/store/auth/auth-patient-store';
+import { usePatientAuthStore } from '@/store/auth/authPatientStore';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  QrCodeIcon,
   MailIcon,
-  LockIcon,
   PhoneIcon,
   UserIcon,
   MapPinIcon,
   HomeIcon,
 } from 'lucide-react';
+import PasswordField from '@/components/common/PasswordField';
 import Link from 'next/link';
+import LocationPicker from '@/components/common/LocationPicker';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as yup from 'yup';
@@ -47,20 +47,6 @@ const registerSchema = yup.object().shape({
   availabilityStatus: yup.boolean().nullable(),
 });
 
-const InputWithIcon = ({ icon: Icon, field, type = 'text', placeholder }) => (
-  <div className="relative">
-    {Icon && (
-      <Icon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-    )}
-    <input
-      {...field}
-      type={type}
-      placeholder={placeholder}
-      className="w-full bg-neutral-900 border border-neutral-700 text-white pl-10 pr-3 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-    />
-  </div>
-);
-
 const PatientRegister = () => {
   const router = useRouter();
   const {
@@ -75,6 +61,7 @@ const PatientRegister = () => {
     handleSubmit,
     control,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(registerSchema),
@@ -92,186 +79,131 @@ const PatientRegister = () => {
       hospitalAddress: '',
       hospitalLocation: '',
       availabilityStatus: false,
+      latitude: '',
+      longitude: '',
     },
   });
 
   const onSubmit = async (data) => {
     if (!captchaToken) {
-      toast.error('Please verify captcha');
+      toast.error('Verification pending or failed. Please refresh the page.');
       return;
     }
     const result = await registerPatient(data, captchaToken);
-    if (result) router.push('/patient/email-verify');
+    if (result) router.replace('/patient/email-verify');
   };
-
-  useEffect(() => {
-    if (success) toast.success(success);
-    if (error) toast.error(error);
-    if (success || error) {
-      reset();
-      resetMessages();
-    }
-  }, [success, error, reset, resetMessages]);
-
   return (
-    <div className="flex min-h-screen bg-neutral-900 text-white">
-      {/* Left Panel */}
-      <div className="hidden md:flex flex-col justify-center items-center w-1/2 bg-gradient-to-br from-yellow-500 via-yellow-600 to-yellow-700 p-8 text-black">
-        <QrCodeIcon className="h-16 w-16 mb-4" />
-        <h1 className="text-3xl font-extrabold">Patient Panel</h1>
-        <p className="text-black/80 mt-2 text-center max-w-sm">
-          Register as a patient — secure, fast, and reliable.
-        </p>
+    <div className="flex min-h-screen bg-bg text-white overflow-hidden">
+      {/* Left Brand Panel - Narrower for register */}
+      <div className="hidden lg:flex flex-col justify-center items-center w-2/5 relative overflow-hidden bg-surface">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--highlight-hex),0.12),transparent_70%)] animate-pulse"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-white/5 rounded-full opacity-20"></div>
+
+        <div className="relative z-10 flex flex-col items-center text-center p-8 space-y-6">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-highlight to-highlight/60 flex items-center justify-center shadow-[0_0_40px_rgba(var(--highlight-hex),0.35)] border border-white/10">
+            <span className="text-black font-black text-3xl tracking-tighter italic drop-shadow-lg">U</span>
+          </div>
+          <div className="space-y-3">
+            <h1 className="text-4xl font-black tracking-tighter italic uppercase text-white leading-none">
+              UNITYDROP <br />
+              <span className="text-highlight">PATIENT PORTAL</span>
+            </h1>
+            <p className="text-text-dim font-bold text-sm uppercase tracking-widest max-w-xs">
+              Secure Access to Health Records & Donor Network
+            </p>
+          </div>
+          <div className="flex items-center gap-3 pt-6">
+            <div className="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-text-dim">
+              Patient Verified
+            </div>
+            <div className="px-4 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-green-500">
+              Live Network
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Right Form */}
-      <div className="flex flex-1 items-center justify-center p-6">
+      {/* Right Form Panel - Wider for more fields */}
+      <div className="flex flex-1 items-start justify-center p-6 md:p-10 overflow-y-auto min-h-screen">
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="bg-neutral-800 border border-neutral-700 p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-5"
+          className="bg-surface-2/40 backdrop-blur-3xl border border-white/10 p-8 md:p-10 rounded-[2rem] shadow-[0_0_80px_rgba(0,0,0,0.7)] w-full max-w-2xl space-y-5 relative z-10 my-8 theme-patient"
         >
-          <h2 className="text-2xl font-bold text-center text-yellow-400">
-            Patient Register
-          </h2>
-          <div className="flex justify-center">
-            <Link
-              href="/donor/register"
-              className="text-sm text-yellow-400 hover:text-yellow-300 hover:underline transition"
-            >
-              Register as Donor
-            </Link>
+          {/* Header */}
+          <div className="space-y-1.5 text-center">
+            <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Patient Registration</h2>
+            <p className="text-text-dim text-[10px] font-black uppercase tracking-[0.3em]">Create Your Account</p>
           </div>
 
-          {/* Required Fields */}
-          {/** Full Name */}
-          <div>
-            <label className="block text-gray-400 mb-1">Full Name</label>
-            <Controller
-              name="fullName"
-              control={control}
-              render={({ field }) => (
-                <InputWithIcon
-                  icon={UserIcon}
+          {/* Required Fields in 2-column grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Full Name */}
+            <div className="formGroup group">
+              <label className="formLabel">Full Name</label>
+              <div className="relative">
+                <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim group-focus-within:text-highlight transition-colors" />
+                <Controller name="fullName" control={control} render={({ field }) => (
+                  <input {...field} placeholder="Enter Full Name" className="inputField pl-14" />
+                )} />
+              </div>
+              {errors.fullName && <p className="formError">{errors.fullName.message}</p>}
+            </div>
+
+            {/* Email */}
+            <div className="formGroup group">
+              <label className="formLabel">Email Address</label>
+              <div className="relative">
+                <MailIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim group-focus-within:text-highlight transition-colors" />
+                <Controller name="email" control={control} render={({ field }) => (
+                  <input {...field} type="email" placeholder="Enter Email" className="inputField pl-14" />
+                )} />
+              </div>
+              {errors.email && <p className="formError">{errors.email.message}</p>}
+            </div>
+
+            {/* Password */}
+            <div className="formGroup group">
+              <Controller name="password" control={control} render={({ field }) => (
+                <PasswordField
                   field={field}
-                  placeholder="Full Name"
+                  label="Password"
+                  placeholder="Create Password"
+                  error={errors.password?.message}
                 />
-              )}
-            />
-            {errors.fullName && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.fullName.message}
-              </p>
-            )}
-          </div>
+              )} />
+            </div>
 
-          {/** Email */}
-          <div>
-            <label className="block text-gray-400 mb-1">Email</label>
-            <Controller
-              name="email"
-              control={control}
-              render={({ field }) => (
-                <InputWithIcon
-                  icon={MailIcon}
+            {/* Confirm Password */}
+            <div className="formGroup group">
+              <Controller name="password_confirmation" control={control} render={({ field }) => (
+                <PasswordField
                   field={field}
-                  type="email"
-                  placeholder="Email"
+                  label="Confirm Key"
+                  placeholder="Repeat Password"
+                  error={errors.password_confirmation?.message}
                 />
-              )}
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
+              )} />
+            </div>
 
-          {/** Password */}
-          <div>
-            <label className="block text-gray-400 mb-1">Password</label>
-            <Controller
-              name="password"
-              control={control}
-              render={({ field }) => (
-                <InputWithIcon
-                  icon={LockIcon}
-                  field={field}
-                  type="password"
-                  placeholder="Password"
-                />
-              )}
-            />
-            {errors.password && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
-
-          {/** Confirm Password */}
-          <div>
-            <label className="block text-gray-400 mb-1">Confirm Password</label>
-            <Controller
-              name="password_confirmation"
-              control={control}
-              render={({ field }) => (
-                <InputWithIcon
-                  icon={LockIcon}
-                  field={field}
-                  type="password"
-                  placeholder="Confirm Password"
-                />
-              )}
-            />
-            {errors.password_confirmation && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.password_confirmation.message}
-              </p>
-            )}
-          </div>
-
-          {/** Gender */}
-          <div>
-            <label className="block text-gray-400 mb-1">Gender</label>
-            <Controller
-              name="gender"
-              control={control}
-              render={({ field }) => (
-                <select
-                  {...field}
-                  className="w-full bg-neutral-900 border border-neutral-700 text-gray-400 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                >
+            {/* Gender */}
+            <div className="formGroup group">
+              <label className="formLabel">Gender</label>
+              <Controller name="gender" control={control} render={({ field }) => (
+                <select {...field} className="selectField">
                   <option value="">Select Gender</option>
-                  <option value="Male" className="text-white">
-                    Male
-                  </option>
-                  <option value="Female" className="text-white">
-                    Female
-                  </option>
-                  <option value="Other" className="text-white">
-                    Other
-                  </option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
                 </select>
-              )}
-            />
-            {errors.gender && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.gender.message}
-              </p>
-            )}
-          </div>
+              )} />
+              {errors.gender && <p className="formError">{errors.gender.message}</p>}
+            </div>
 
-          {/** Blood Group */}
-          <div>
-            <label className="block text-gray-400 mb-1">Blood Group</label>
-            <Controller
-              name="bloodGroup"
-              control={control}
-              render={({ field }) => (
-                <select
-                  {...field}
-                  className="w-full bg-neutral-900 border border-neutral-700 text-gray-400 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                >
+            {/* Blood Group */}
+            <div className="formGroup group">
+              <label className="formLabel">Blood Group</label>
+              <Controller name="bloodGroup" control={control} render={({ field }) => (
+                <select {...field} className="selectField">
                   <option value="">Select Blood Group</option>
                   <option value="A+">A+</option>
                   <option value="A-">A-</option>
@@ -282,164 +214,138 @@ const PatientRegister = () => {
                   <option value="AB+">AB+</option>
                   <option value="AB-">AB-</option>
                 </select>
-              )}
-            />
-            {errors.bloodGroup && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.bloodGroup.message}
-              </p>
-            )}
+              )} />
+              {errors.bloodGroup && <p className="formError">{errors.bloodGroup.message}</p>}
+            </div>
+
+            {/* Phone */}
+            <div className="formGroup group">
+              <label className="formLabel">Phone</label>
+              <div className="relative">
+                <PhoneIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim group-focus-within:text-highlight transition-colors" />
+                <Controller name="phone" control={control} render={({ field }) => (
+                  <input {...field} placeholder="Phone Number" className="inputField pl-14" />
+                )} />
+              </div>
+              {errors.phone && <p className="formError">{errors.phone.message}</p>}
+            </div>
+
+            {/* Location */}
+            <div className="formGroup group">
+              <label className="formLabel">Location</label>
+              <div className="relative">
+                <MapPinIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim group-focus-within:text-highlight transition-colors" />
+                <Controller name="location" control={control} render={({ field }) => (
+                  <input {...field} placeholder="City / Region" className="inputField pl-14" />
+                )} />
+              </div>
+              <LocationPicker
+                className="mt-1"
+                onLocationDetected={({ latitude, longitude, city, address }) => {
+                  setValue('latitude', latitude);
+                  setValue('longitude', longitude);
+                  if (city) setValue('location', city);
+                  if (address) setValue('address', address);
+                }}
+              />
+              {errors.location && <p className="formError">{errors.location.message}</p>}
+            </div>
           </div>
 
-          {/** Location */}
-          <div>
-            <label className="block text-gray-400 mb-1">Location</label>
-            <Controller
-              name="location"
-              control={control}
-              render={({ field }) => (
-                <InputWithIcon
-                  icon={MapPinIcon}
-                  field={field}
-                  placeholder="City / Region"
-                />
-              )}
-            />
-            {errors.location && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.location.message}
-              </p>
-            )}
+          {/* Optional Fields Section */}
+          <div className="space-y-3 pt-2">
+            <p className="text-[9px] font-black text-text-dim uppercase tracking-[0.3em] flex items-center gap-2">
+              <span className="w-1 h-1 rounded-full bg-highlight/60"></span>
+              Optional Details
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Address */}
+              <div className="space-y-1.5 group md:col-span-2">
+                <label className="formLabel">Address</label>
+                <Controller name="address" control={control} render={({ field }) => (
+                  <textarea {...field} rows={2} placeholder="Your Address (Optional)" className="inputField resize-none" />
+                )} />
+              </div>
+
+              {/* Hospital Name */}
+              <div className="formGroup group">
+                <label className="formLabel">Hospital Name</label>
+                <div className="relative">
+                  <HomeIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim group-focus-within:text-highlight transition-colors" />
+                  <Controller name="hospitalName" control={control} render={({ field }) => (
+                    <input {...field} placeholder="Hospital (Optional)" className="inputField pl-14" />
+                  )} />
+                </div>
+              </div>
+
+              {/* Hospital Address */}
+              <div className="formGroup group">
+                <label className="formLabel">Hospital Address</label>
+                <div className="relative">
+                  <MapPinIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim group-focus-within:text-highlight transition-colors" />
+                  <Controller name="hospitalAddress" control={control} render={({ field }) => (
+                    <input {...field} placeholder="Hospital Address (Optional)" className="inputField pl-14" />
+                  )} />
+                </div>
+              </div>
+
+              {/* Hospital Location */}
+              <div className="formGroup group">
+                <label className="formLabel">Hospital Location</label>
+                <div className="relative">
+                  <MapPinIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim group-focus-within:text-highlight transition-colors" />
+                  <Controller name="hospitalLocation" control={control} render={({ field }) => (
+                    <input {...field} placeholder="Hospital Location (Optional)" className="inputField pl-14" />
+                  )} />
+                </div>
+              </div>
+
+              {/* Availability */}
+              <div className="flex items-center gap-3 px-1">
+                <Controller name="availabilityStatus" control={control} render={({ field }) => (
+                  <input type="checkbox" {...field} checked={field.value} className="h-4 w-4 accent-highlight rounded" />
+                )} />
+                <span className="text-text-dim text-xs font-bold">Available (Optional)</span>
+              </div>
+            </div>
           </div>
 
-          {/** Phone */}
-          <div>
-            <label className="block text-gray-400 mb-1">Phone</label>
-            <Controller
-              name="phone"
-              control={control}
-              render={({ field }) => (
-                <InputWithIcon
-                  icon={PhoneIcon}
-                  field={field}
-                  placeholder="Phone Number"
-                />
-              )}
-            />
-            {errors.phone && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.phone.message}
-              </p>
-            )}
-          </div>
-
-          {/* Optional Fields */}
-          {/** Address */}
-          <div>
-            <label className="block text-gray-400 mb-1">
-              Address (Optional)
-            </label>
-            <Controller
-              name="address"
-              control={control}
-              render={({ field }) => (
-                <textarea
-                  {...field}
-                  placeholder="Address (Optional)"
-                  className="w-full bg-neutral-900 border border-neutral-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                />
-              )}
-            />
-          </div>
-
-          {/** Hospital Name */}
-          <div>
-            <label className="block text-gray-400 mb-1">
-              Hospital Name (Optional)
-            </label>
-            <Controller
-              name="hospitalName"
-              control={control}
-              render={({ field }) => (
-                <InputWithIcon
-                  icon={HomeIcon}
-                  field={field}
-                  placeholder="Hospital Name (Optional)"
-                />
-              )}
-            />
-          </div>
-
-          {/** Hospital Address */}
-          <div>
-            <label className="block text-gray-400 mb-1">
-              Hospital Address (Optional)
-            </label>
-            <Controller
-              name="hospitalAddress"
-              control={control}
-              render={({ field }) => (
-                <InputWithIcon
-                  icon={MapPinIcon}
-                  field={field}
-                  placeholder="Hospital Address (Optional)"
-                />
-              )}
-            />
-          </div>
-
-          {/** Hospital Location */}
-          <div>
-            <label className="block text-gray-400 mb-1">
-              Hospital Location (Optional)
-            </label>
-            <Controller
-              name="hospitalLocation"
-              control={control}
-              render={({ field }) => (
-                <InputWithIcon
-                  icon={MapPinIcon}
-                  field={field}
-                  placeholder="Hospital Location (Optional)"
-                />
-              )}
-            />
-          </div>
-
-          {/** Availability Status */}
-          <div className="flex items-center space-x-2">
-            <Controller
-              name="availabilityStatus"
-              control={control}
-              render={({ field }) => (
-                <input
-                  type="checkbox"
-                  {...field}
-                  checked={field.value}
-                  className="h-4 w-4 accent-yellow-400"
-                />
-              )}
-            />
-            <span className="text-gray-300">Available (Optional)</span>
-          </div>
           <CaptchaField onVerify={setCaptchaToken} />
+
           <button
             type="submit"
-            className="w-full bg-yellow-400 text-black font-medium py-3 rounded-lg hover:bg-yellow-500 hover:shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
+            className="w-full bg-highlight hover:bg-highlight/90 text-black font-black uppercase tracking-[0.2em] text-xs py-5 rounded-xl transition-all shadow-[0_10px_30px_rgba(var(--highlight-hex),0.2)] active:scale-[0.98] disabled:opacity-50"
           >
-            {loading ? 'Registering...' : 'Register'}
+            {loading ? 'Registering Pleae Wait...' : 'Submit'}
           </button>
 
-          <p className="text-sm text-gray-400 text-center">
-            Already have an account?{' '}
-            <Link
-              href="/patient/login"
-              className="text-yellow-400 hover:underline cursor-pointer"
-            >
-              Login
-            </Link>
-          </p>
+          {/* Footer Links */}
+          <div className="space-y-4 pt-2">
+            <div className="text-center">
+              <p className="text-[10px] font-bold text-text-dim">
+                Already registered?{' '}
+                <Link href="/patient/login" className="text-highlight hover:text-white transition-colors font-black uppercase tracking-wider">
+                  Login Here
+                </Link>
+              </p>
+            </div>
+
+            <div className="h-px bg-white/5 w-full"></div>
+
+            <div className="flex flex-col items-center gap-3">
+              <p className="text-[9px] font-black text-text-dim uppercase tracking-[0.3em]">Register As</p>
+              <div className="flex gap-3">
+                <Link href="/donor/register" className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-white hover:bg-white/10 transition-all">
+                  Donor Register
+                </Link>
+                <Link href="/admin/register" className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-white hover:bg-white/10 transition-all">
+                  Admin Register
+                </Link>
+              </div>
+            </div>
+          </div>
         </form>
       </div>
     </div>

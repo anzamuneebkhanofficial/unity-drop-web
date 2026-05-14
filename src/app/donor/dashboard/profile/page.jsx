@@ -1,99 +1,120 @@
 /** @format */
 'use client';
 
-import { useEffect } from 'react';
-import { useDonorAuthStore } from '@/store/auth/auth-donor-store';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useDonorAuthStore } from '@/store/auth/authDonorStore';
 import {
-  FiUser,
-  FiMail,
-  FiPhone,
-  FiMapPin,
-  FiDroplet,
-  FiKey,
-  FiCheckCircle,
-  FiXCircle,
-} from 'react-icons/fi';
-import SectionLoader from '@/components/GeneralSpinner/SectionLoader';
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Droplet,
+  Shield,
+  CheckCircle2,
+  XCircle,
+  Activity,
+  Trash2,
+} from 'lucide-react';
+import { ProfileSkeleton } from '@/components/ui/Skeletons';
+import DangerZone from '@/components/common/delete-account/DangerZone';
+import { toast } from 'sonner';
 
 export default function DonorProfileView() {
-  const { DonorCaught: user, getDonor, loading } = useDonorAuthStore();
+  const { DonorCaught: user, getDonor, loading, deleteOurself } = useDonorAuthStore();
+  const router = useRouter();
 
   useEffect(() => {
     getDonor();
   }, [getDonor]);
 
+  const handleDeleteAccount = async () => {
+    const success = await deleteOurself();
+    if (success) {
+      // toast.success('Account permanently deleted successfully.');
+      // Push to login — middleware will handle cookie-based redirect as well
+      router.replace('/donor/login');
+    }
+  };
+
   if (loading || !user) {
-    return (
-      <SectionLoader message="Loading your profile..." size={56} height={200} />
-    );
+    return <ProfileSkeleton />;
   }
 
+  const displayValue = (val) =>
+    val === null || val === undefined || val === '' ? 'Not Provided' : val;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-900 text-white px-4">
-      <div className="bg-neutral-800 border border-neutral-700 p-8 rounded-2xl shadow-xl w-full max-w-2xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-24 h-24 mx-auto rounded-full bg-yellow-400 flex items-center justify-center text-4xl font-bold text-black shadow-lg">
-            {user.fullName?.charAt(0).toUpperCase()}
+    <>
+      <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto animate-fadeIn pb-10">
+        {/* Premium Header Card */}
+        <div className="bg-[#0f0f0f] border border-white/5 rounded-[2rem] p-8 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden group flex flex-col md:flex-row items-center gap-8">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-donor to-highlight opacity-50"></div>
+
+          {/* Avatar Section */}
+          <div className="relative">
+            <div className="w-32 h-32 rounded-full border-[4px] border-[#1a1a1a] bg-[#121212] flex items-center justify-center text-5xl font-black text-white shadow-2xl relative z-10 overflow-hidden">
+              {user.fullName?.charAt(0).toUpperCase()}
+              <div className="absolute inset-0 bg-white/5 group-hover:bg-transparent transition duration-300"></div>
+            </div>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold mt-4">{user.fullName}</h2>
-          <p className="text-gray-400">{user.role}</p>
+
+          {/* Info Section */}
+          <div className="flex flex-col items-center md:items-start text-center md:text-left flex-1">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight uppercase mb-2">
+              {displayValue(user.fullName)}
+            </h1>
+            <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-widest text-donor">
+              <Shield className="w-4 h-4" />
+              <span>{displayValue(user.role)} PROFILE</span>
+            </div>
+          </div>
+
         </div>
 
-        {/* Profile Information */}
-        <div className="grid gap-6 sm:grid-cols-2">
-          <ProfileItem
-            icon={<FiUser />}
-            label="Full Name"
-            value={user.fullName}
-          />
-          <ProfileItem
-            icon={<FiMail />}
-            label="Email Address"
-            value={user.email}
-          />
-          <ProfileItem icon={<FiKey />} label="Role" value={user.role} />
-          <ProfileItem icon={<FiUser />} label="Gender" value={user.gender} />
-          <ProfileItem
-            icon={<FiDroplet />}
-            label="Blood Group"
-            value={user.bloodGroup}
-          />
-          <ProfileItem
-            icon={<FiMapPin />}
-            label="Location"
-            value={user.location}
-          />
-          <ProfileItem
-            icon={<FiPhone />}
-            label="Phone Number"
-            value={user.phone}
-          />
-          <ProfileItem
-            icon={user.availabilityStatus ? <FiCheckCircle /> : <FiXCircle />}
-            label="Availability"
-            value={user.availabilityStatus ? 'Available' : 'Unavailable'}
-            valueClass={
-              user.availabilityStatus ? 'text-green-400' : 'text-red-400'
-            }
-          />
+        {/* Horizontal Data List Card */}
+        <div className="bg-[#0c0c0c] border border-white/5 rounded-xl p-8 md:p-12 shadow-2xl relative">
+          <div className="flex items-center gap-3 mb-8 pb-6 border-b border-white/5">
+            <User className="w-6 h-6 text-gray-400" />
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider">Personal Details</h2>
+          </div>
+
+          <div className="flex flex-col divide-y divide-white/5">
+            <ProfileRow icon={User} label="Full Name" value={displayValue(user.fullName)} />
+            <ProfileRow icon={Mail} label="Email" value={displayValue(user.email)} />
+            <ProfileRow icon={Shield} label="Role" value={displayValue(user.role)} />
+            <ProfileRow icon={User} label="Gender" value={displayValue(user.gender)} />
+            <ProfileRow icon={Droplet} label="Blood Group" value={displayValue(user.bloodGroup)} valueClass="text-donor font-bold" />
+            <ProfileRow icon={MapPin} label="Location" value={displayValue(user.location)} />
+            <ProfileRow icon={Phone} label="Phone Number" value={displayValue(user.phone)} />
+          </div>
         </div>
+
+        {/* ⚠️ Reusable Danger Zone */}
+        <DangerZone
+          roleName="Donor"
+          onDelete={handleDeleteAccount}
+          description="Delete your account forever. This will remove all your details from our system. This action cannot be undone."
+        />
       </div>
-    </div>
+    </>
   );
 }
 
-// Reusable item
-function ProfileItem({ icon, label, value, valueClass = 'text-white' }) {
+// Reusable Horizontal Profile Item
+function ProfileRow({ icon: Icon, label, value, valueClass = 'text-white' }) {
   return (
-    <div className="flex flex-col bg-neutral-900 border border-neutral-700 rounded-lg p-4 shadow-md max-w-full">
-      <div className="flex items-center gap-2 text-gray-400 mb-1">
-        {icon}
-        <span className="text-sm">{label}</span>
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-6 group hover:bg-white/[0.02] transition-colors rounded-xl px-4 -mx-4">
+      <div className="flex items-center gap-4 mb-2 sm:mb-0">
+        <div className="w-10 h-10 rounded-full bg-[#121212] border border-white/5 flex items-center justify-center text-gray-400 group-hover:text-white transition-colors">
+          <Icon className="w-5 h-5" />
+        </div>
+        <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{label}</span>
       </div>
-      <span className={`text-lg font-medium break-words ${valueClass}`}>
+      <div className={`text-right text-base md:text-lg font-medium ${valueClass}`}>
         {value}
-      </span>
+      </div>
     </div>
   );
 }

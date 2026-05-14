@@ -1,13 +1,14 @@
 /** @format */
 'use client';
 
-import React, { useEffect } from 'react';
-import { usePatientAuthStore } from '@/store/auth/auth-patient-store';
+import React from 'react';
+import { usePatientAuthStore } from '@/store/auth/authPatientStore';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import PasswordField from '@/components/common/PasswordField';
+import { ShieldCheck, Save, KeyRound } from 'lucide-react';
 
 const changeSchema = yup.object().shape({
   password: yup
@@ -20,20 +21,13 @@ const changeSchema = yup.object().shape({
     .required('Confirm password is required'),
 });
 
-const inputClass =
-  'w-full p-3 rounded-lg bg-neutral-900 border border-neutral-700 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400';
-const buttonClass =
-  'w-full bg-yellow-400 py-3 rounded-lg font-medium text-black hover:bg-yellow-500 transition disabled:opacity-50 disabled:cursor-not-allowed';
-
 export default function PatientChangePassword() {
   const router = useRouter();
-  const { changePassword, loading, error, success, resetMessages } =
-    usePatientAuthStore();
+  const { changePassword, loading } = usePatientAuthStore();
 
   const {
     handleSubmit,
     control,
-    reset,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(changeSchema),
@@ -45,67 +39,79 @@ export default function PatientChangePassword() {
       data.password,
       data.password_confirmation
     );
-    if (result) router.push('/patient/dashboard');
+    if (result) router.replace('/patient/dashboard');
   };
 
-  useEffect(() => {
-    if (success) toast.success(success);
-    if (error) toast.error(error);
-    if (success || error) {
-      reset();
-      resetMessages();
-    }
-  }, [success, error, reset, resetMessages]);
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-900 text-white">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="bg-neutral-800 border border-neutral-700 p-8 rounded-2xl shadow-lg w-full max-w-md space-y-6"
-      >
-        <h2 className="text-2xl font-bold text-center text-yellow-400">
-          Change Password (Patient)
-        </h2>
-        <p className="text-sm text-gray-400 text-center">
-          Update your patient account password below
-        </p>
+    <div className="w-full max-w-4xl mx-auto animate-fadeIn pb-12">
+      <div className="bg-[#0c0c0c] border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl relative">
+        {/* Top color bar */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-highlight to-highlight/50 opacity-50"></div>
 
-        {/* New Password */}
-        <div>
-          <label className="block text-gray-400 mb-1">New Password</label>
-          <Controller
-            name="password"
-            control={control}
-            render={({ field }) => (
-              <input {...field} type="password" className={inputClass} />
-            )}
-          />
-          {errors.password && (
-            <p className="text-red-500 text-sm">{errors.password.message}</p>
-          )}
+        <div className="p-8 md:p-12">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 pb-8 border-b border-white/5">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-[#121212] border border-white/5 flex items-center justify-center text-highlight">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-extrabold text-white tracking-widest uppercase">Change Password</h2>
+                <p className="text-sm text-gray-500 mt-1">Set a new password for your patient account</p>
+              </div>
+            </div>
+            <button
+              onClick={handleSubmit(onSubmit)}
+              disabled={loading}
+              className="flex items-center justify-center gap-2 bg-highlight hover:bg-highlight/80 text-black px-8 py-4 rounded-full font-bold uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(253,199,0,0.2)]"
+            >
+              <Save className="w-4 h-4" />
+              {loading ? 'Saving...' : 'Save Password'}
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="max-w-2xl mx-auto space-y-8">
+            <div className="bg-[#121212] border border-white/5 rounded-2xl p-8 space-y-8">
+              <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+                <KeyRound className="w-5 h-5 text-gray-500" />
+                <h3 className="text-sm font-bold text-gray-300 uppercase tracking-widest">New Password</h3>
+              </div>
+
+              {/* New Password */}
+              <div className="space-y-2">
+                <Controller
+                  name="password"
+                  control={control}
+                  render={({ field }) => (
+                    <PasswordField
+                      field={field}
+                      label="New Password"
+                      placeholder="Enter new password (min 6 characters)"
+                      error={errors.password?.message}
+                    />
+                  )}
+                />
+              </div>
+
+              {/* Confirm Password */}
+              <div className="space-y-2">
+                <Controller
+                  name="password_confirmation"
+                  control={control}
+                  render={({ field }) => (
+                    <PasswordField
+                      field={field}
+                      label="Confirm Password"
+                      placeholder="Re-enter your new password"
+                      error={errors.password_confirmation?.message}
+                    />
+                  )}
+                />
+              </div>
+            </div>
+          </form>
         </div>
-
-        {/* Confirm Password */}
-        <div>
-          <label className="block text-gray-400 mb-1">Confirm Password</label>
-          <Controller
-            name="password_confirmation"
-            control={control}
-            render={({ field }) => (
-              <input {...field} type="password" className={inputClass} />
-            )}
-          />
-          {errors.password_confirmation && (
-            <p className="text-red-500 text-sm">
-              {errors.password_confirmation.message}
-            </p>
-          )}
-        </div>
-
-        <button type="submit" className={buttonClass} disabled={loading}>
-          {loading ? 'Changing...' : 'Change Password'}
-        </button>
-      </form>
+      </div>
     </div>
   );
 }

@@ -1,9 +1,8 @@
 /** @format */
+// 💡 INDUSTRY STANDARD: Keeping Route entry point clean.
+// The actual Page Layout and logic is structurally isolated inside the features/landing domain.
+import LandingPage from '@/features/landing/components/LandingPage';
 
-import React from 'react';
-
-const page = () => {
-  return <div>page</div>;
-};
-
-export default page;
+export default function Home() {
+  return <LandingPage />;
+}

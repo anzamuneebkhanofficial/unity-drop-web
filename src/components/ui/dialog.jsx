@@ -23,7 +23,7 @@ function DialogOverlay({ className, ...props }) {
   return (
     <DialogPrimitive.Overlay
       className={cn(
-        'fixed inset-0 z-50 bg-[#0a0a0a]/80 data-[state=open]:animate-in data-[state=closed]:animate-out',
+        'fixed inset-0 z-[9999] bg-bg/80 data-[state=open]:animate-in data-[state=closed]:animate-out',
         className
       )}
       {...props}
@@ -42,14 +42,14 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Content
         className={cn(
-          'bg-[#0a0a0a] text-white border border-[#fdc700] fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg p-6 shadow-lg duration-200 sm:max-w-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
+          'bg-surface/95 backdrop-blur-2xl text-white border border-white/5 fixed top-1/2 left-1/2 z-[9999] grid w-full max-w-[calc(100%-1.5rem)] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-xl p-8 md:p-10 shadow-[0_0_80px_rgba(0,0,0,0.6)] duration-200 sm:max-w-4xl lg:max-w-5xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 focus:outline-none',
           className
         )}
         {...props}
       >
         {children}
         {showCloseButton && (
-          <DialogPrimitive.Close className="absolute top-4 right-4 bg-black text-white hover:bg-[#fdc700] p-1 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#fdc700] [&_svg]:pointer-events-none">
+          <DialogPrimitive.Close className="absolute top-6 right-6 bg-surface-2 text-white hover:bg-highlight hover:text-black p-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-highlight/50 [&_svg]:w-5 [&_svg]:h-5">
             <XIcon />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
@@ -84,7 +84,7 @@ function DialogTitle({ className, ...props }) {
   return (
     <DialogPrimitive.Title
       className={cn(
-        'text-lg font-semibold text-[#fdc700] leading-none',
+        'text-lg font-semibold text-highlight leading-none',
         className
       )}
       {...props}
@@ -120,7 +120,7 @@ function DialogClose({ ...props }) {
       {...props}
       className={cn(
         buttonVariants(),
-        'bg-black text-white hover:bg-[#fdc700] p-2 rounded transition-colors'
+        'bg-black text-white hover:bg-highlight p-2 rounded transition-colors'
       )}
     />
   );

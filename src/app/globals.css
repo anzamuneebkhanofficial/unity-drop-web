@@ -1,187 +1,227 @@
-/** @format */
+@import "tailwindcss";
 
-@import 'tailwindcss';
-
-@import 'tw-animate-css';
-
-/*---break--- */
-
-@custom-variant dark (&:is(.dark *));
-
-/* Theme variables */
 :root {
-  --text: #ffffff;
+  --highlight-hex: 253 199 0;
+  --donor-hex: 231 77 42;
   --highlight: #fdc700;
-  --bg: #0a0a0a;
-  --muted: oklch(0.97 0 0);
-  --muted-2: rgba(255, 255, 255, 0.06);
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --donor: #e74d2a;
+  --bg: #030303;
+  --surface: #0a0a0c;
+  --surface-2: #121215;
+  --surface-3: #1c1c1f;
+  --text: #ffffff;
+  --text-muted: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-soft: #64748b;
+  --radius: 0.5rem;
+  --border-muted: rgba(255, 255, 255, 0.05);
+  --border-active: rgba(255, 255, 255, 0.15);
+
+  --portal-focus: var(--donor);
+
+  /* ✅ FIX 1: RGB triplets for rgba() usage — hex values can't go inside rgba().
+     These match --donor and --highlight exactly, just in rgb-channel format. */
+  --portal-focus-rgb: var(--donor-hex);
+  /* defaults to donor theme */
 }
-@theme inline {
-  --text: #ffffff;
-  --highlight: #fdc700;
-  --bg: #0a0a0a;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+
+.theme-donor {
+  --portal-focus: var(--donor);
+  --portal-focus-rgb: var(--donor-hex);
+}
+
+.theme-patient {
+  --portal-focus: var(--highlight);
+  --portal-focus-rgb: var(--highlight-hex);
+}
+
+.theme-admin {
+  --portal-focus: var(--highlight);
+  --portal-focus-rgb: var(--highlight-hex);
+}
+
+@theme {
+  --color-highlight: var(--highlight);
+  --color-donor: var(--donor);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-text-muted: var(--text-muted);
+  --color-text-dim: var(--text-dim);
+  --color-text-soft: var(--text-soft);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
 }
-/* Custom utilities */
+
+@layer base {
+
+  html,
+  body {
+    min-height: 100dvh;
+    scroll-behavior: smooth;
+    color: var(--text);
+    background: var(--bg);
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    overflow-x: hidden;
+    max-width: 100%;
+
+    /* ✅ FIX 2: Firefox scrollbar — ::-webkit-scrollbar is Chrome/Safari only.
+       Firefox uses these two properties on the scroll container itself. */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.05) var(--bg);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  /* Force clear placeholder overlap */
+  /* THE ULTIMATE GLOBAL AUTOFILL FIX */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px var(--bg) inset !important;
+    -webkit-text-fill-color: var(--text) !important;
+    transition: background-color 5000s ease-in-out 0s;
+    caret-color: var(--text);
+  }
+
+  /* ✅ FIX 3: Firefox autofill — Firefox 86+ supports the unprefixed :autofill.
+     Duplicated intentionally; each browser picks only the block it understands. */
+  input:autofill,
+  input:autofill:hover,
+  input:autofill:focus,
+  input:autofill:active,
+  select:autofill,
+  select:autofill:hover,
+  select:autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px var(--bg) inset !important;
+    box-shadow: 0 0 0px 1000px var(--bg) inset !important;
+    -webkit-text-fill-color: var(--text) !important;
+    color: var(--text) !important;
+    transition: background-color 5000s ease-in-out 0s;
+    caret-color: var(--text);
+  }
+
+  /* 💡 Global Scrollbar exactly matching dashboard style */
+  ::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+  }
+
+  /* ✅ FIX 4: rgba(var(--portal-focus), 0.5) was broken — hex can't go in rgba().
+     Switched to modern rgb(R G B / alpha) syntax using the new --portal-focus-rgb. */
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--portal-focus);
+    box-shadow: 0 0 10px rgb(var(--portal-focus-rgb) / 0.5);
+  }
+}
+
 @layer utilities {
   .inputField {
-    @apply w-full bg-neutral-900 border border-neutral-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400;
+    width: 100%;
+    background-color: var(--bg);
+    border: 1px solid var(--border-muted);
+    color: var(--text);
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius);
+    outline: none;
+    transition: all 0.2s ease;
+    font-weight: 700;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    letter-spacing: -0.025em;
+  }
+
+  /* SPECIAL CASE: Fields with Left Icons */
+  .input-with-icon {
+    padding-left: 3.5rem !important;
+    /* 56px - plenty of space for icon at left-5 */
+  }
+
+  /* Ensure padding-left 14 is absolutely enforced if used in JSX */
+  .pl-14 {
+    padding-left: 3.5rem !important;
+  }
+
+  /* ✅ FIX 5: rgba(var(--portal-focus), 0.1) was silently broken in all browsers.
+     hex values are not valid inside rgba(). Using rgb() / alpha with the rgb triplet. */
+  .inputField:focus {
+    border-color: var(--portal-focus) !important;
+    box-shadow: 0 0 0 1px rgb(var(--portal-focus-rgb) / 0.1);
   }
 
   .selectField {
-    @apply w-full bg-neutral-900 border border-neutral-700 text-gray-400 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400;
+    @apply w-full bg-bg border border-white/5 text-text-dim p-4 rounded-xl focus:outline-none focus:border-donor/50 transition-all font-bold text-sm;
+  }
+
+  .formLabel {
+    @apply block text-[10px] font-black uppercase text-text-dim tracking-[0.15em] ml-1 mb-2.5 transition-colors;
+  }
+
+  .group:focus-within .formLabel {
+    color: var(--portal-focus);
+  }
+
+  .formError {
+    @apply text-donor text-[10px] font-black uppercase tracking-widest mt-2 ml-1;
+  }
+
+  .formGroup {
+    @apply space-y-3;
+    /* Increased spacing */
   }
 
   .universelBtn {
-    @apply w-full bg-yellow-400 text-black font-medium py-3 rounded-lg hover:bg-yellow-500 transition disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-}
-/* Base styles */
-@layer base {
-  html,
-  body {
-    height: 100%;
-    color: var(--text);
-    background: var(--bg);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
-      Roboto, 'Helvetica Neue', Arial, sans-serif;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch; /* smooth scrolling for iOS Safari */
+    @apply w-full bg-highlight text-black font-bold py-4 rounded-xl hover:bg-highlight/90 transition-all transform hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-highlight/10;
   }
 
-  /* Scrollbar subtle */
-  *::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
   }
-  *::-webkit-scrollbar-thumb {
-    background: var(--muted-2);
-    border-radius: 9999px;
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
   }
-}
-#nprogress .bar {
-  background: #fdc700 !important;
-}
 
-#nprogress .peg {
-  box-shadow: 0 0 10px #fdc700, 0 0 5px #fdc700 !important;
-}
-
-#nprogress .spinner-icon {
-  border-top-color: #e74d2a !important;
-  border-left-color: #e74d2a !important;
-}
-
-/*---break--- */
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
-
-/*---break--- */
-
-@layer base {
-  /* * {
-    @apply border-border outline-ring/50;
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    transition: all 0.3s ease;
   }
-  body {
-    @apply bg-background text-foreground;
-  } */
+
+  /* ✅ FIX 6: Same hex-in-rgba bug fixed on custom-scrollbar hover too. */
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--portal-focus);
+    box-shadow: 0 0 10px rgb(var(--portal-focus-rgb) / 0.5);
+  }
+
+  /* ✅ FIX 7: Firefox scrollbar for .custom-scrollbar containers.
+     scrollbar-width/color must sit on the scrolling element itself, not the thumb pseudo. */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.05) transparent;
+  }
+
+  @keyframes blink-red {
+    0%, 100% { opacity: 1; transform: scale(1.2); box-shadow: 0 0 18px rgba(220, 38, 38, 1); }
+    50% { opacity: 0.35; transform: scale(0.8); box-shadow: 0 0 0px rgba(220, 38, 38, 0); }
+  }
+
+  .animate-blink-red {
+    animation: blink-red 1s infinite cubic-bezier(0.4, 0, 0.6, 1);
+  }
 }

@@ -1,88 +1,119 @@
 /** @format */
-
 'use client';
 
-import { useEffect } from 'react';
-import { useAdminAuthStore } from '@/store/auth/auth-admin-store';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAdminAuthStore } from '@/store/auth/authAdminStore';
 import {
-  FiUser,
-  FiMail,
-  FiPhone,
-  FiKey,
-  FiCheckCircle,
-  FiXCircle,
-} from 'react-icons/fi';
-import SectionLoader from '@/components/GeneralSpinner/SectionLoader';
+  User,
+  Mail,
+  Phone,
+  Shield,
+  CheckCircle2,
+  XCircle,
+  Activity,
+  MapPin,
+  Trash2,
+} from 'lucide-react';
+import { ProfileSkeleton } from '@/components/ui/Skeletons';
+import DangerZone from '@/components/common/delete-account/DangerZone';
+import { toast } from 'sonner';
+
+// Moved outside the component so it is not recreated on every render
+const displayValue = (val) =>
+  val === null || val === undefined || val === '' ? 'Not Provided' : val;
 
 export default function AdminProfileView() {
-  const { AdminCaught: user, getAdmin, loading } = useAdminAuthStore();
+  const { AdminCaught: user, getAdmin, loading, deleteOurself } = useAdminAuthStore();
+  const router = useRouter();
 
   useEffect(() => {
     getAdmin();
   }, [getAdmin]);
 
+  const handleDeleteAccount = async () => {
+    const success = await deleteOurself();
+    if (success) {
+      // toast.success('Account permanently deleted successfully.');
+      router.replace('/admin/login');
+    }
+  };
+
+  // Wait until loading is done and user data is ready
   if (loading || !user) {
-    return (
-      <SectionLoader message="Loading your profile..." size={56} height={200} />
-    );
+    return <ProfileSkeleton />;
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-900 text-white px-4">
-      <div className="bg-neutral-800 border border-neutral-700 p-8 rounded-2xl shadow-xl w-full max-w-2xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-24 h-24 mx-auto rounded-full bg-yellow-400 flex items-center justify-center text-4xl font-bold text-black shadow-lg">
-            {user.fullName?.charAt(0).toUpperCase()}
+    <>
+      <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto animate-fadeIn pb-10">
+        {/* Profile Header */}
+        <div className="bg-[#0f0f0f] border border-white/5 rounded-[2rem] p-8 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden group flex flex-col md:flex-row items-center gap-8">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-highlight opacity-50"></div>
+
+          {/* Avatar */}
+          <div className="relative">
+            <div className="w-32 h-32 rounded-full border-[4px] border-[#1a1a1a] bg-[#121212] flex items-center justify-center text-5xl font-black text-white shadow-2xl relative z-10 overflow-hidden">
+              {/* Safely handles missing fullName to avoid a crash */}
+              {(user.fullName?.charAt(0) || '?').toUpperCase()}
+              <div className="absolute inset-0 bg-white/5 group-hover:bg-transparent transition duration-300"></div>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold mt-4">{user.fullName}</h2>
-          <p className="text-gray-400">{user.role}</p>
+
+          {/* Name & Role */}
+          <div className="flex flex-col items-center md:items-start text-center md:text-left flex-1">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight uppercase mb-2">
+              {displayValue(user.fullName)}
+            </h1>
+            <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-widest text-blue-400">
+              <Shield className="w-4 h-4" />
+              <span>{displayValue(user.role)}</span>
+            </div>
+          </div>
+
         </div>
 
-        {/* Profile Information */}
-        <div className="grid gap-6 sm:grid-cols-2">
-          <ProfileItem
-            icon={<FiUser />}
-            label="Full Name"
-            value={user.fullName}
-          />
-          <ProfileItem
-            icon={<FiMail />}
-            label="Email Address"
-            value={user.email}
-          />
-          <ProfileItem icon={<FiKey />} label="Role" value={user.role} />
-          <ProfileItem icon={<FiUser />} label="Gender" value={user.gender} />
-          <ProfileItem
-            icon={<FiPhone />}
-            label="Phone Number"
-            value={user.phone}
-          />
-          <ProfileItem
-            icon={user.availabilityStatus ? <FiCheckCircle /> : <FiXCircle />}
-            label="Availability"
-            value={user.availabilityStatus ? 'Available' : 'Unavailable'}
-            valueClass={
-              user.availabilityStatus ? 'text-green-400' : 'text-red-400'
-            }
-          />
+        {/* Profile Details Card */}
+        <div className="bg-[#0c0c0c] border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative">
+          <div className="flex items-center gap-3 mb-8 pb-6 border-b border-white/5">
+            <User className="w-6 h-6 text-gray-400" />
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider">Profile Details</h2>
+          </div>
+
+          <div className="flex flex-col divide-y divide-white/5">
+            <ProfileRow icon={User} label="Full Name" value={displayValue(user.fullName)} />
+            <ProfileRow icon={Mail} label="Email" value={displayValue(user.email)} />
+            <ProfileRow icon={Shield} label="Role" value={displayValue(user.role)} />
+            <ProfileRow icon={User} label="Gender" value={displayValue(user.gender)} />
+            <ProfileRow icon={Phone} label="Phone" value={displayValue(user.phone)} />
+            <ProfileRow icon={MapPin} label="Location" value={displayValue(user.location)} />
+          </div>
         </div>
+
+        {/* Delete Account */}
+        <DangerZone
+          roleName="Admin"
+          onDelete={handleDeleteAccount}
+          description="Permanently delete your admin account. This will remove all your data, session, and access rights from the system. This action "
+        />
       </div>
-    </div>
+    </>
   );
 }
 
-// Reusable item
-function ProfileItem({ icon, label, value, valueClass = 'text-white' }) {
+// Reusable profile row component
+function ProfileRow({ icon: Icon, label, value, valueClass = 'text-white' }) {
   return (
-    <div className="flex flex-col bg-neutral-900 border border-neutral-700 rounded-lg p-4 shadow-md max-w-full">
-      <div className="flex items-center gap-2 text-gray-400 mb-1">
-        {icon}
-        <span className="text-sm">{label}</span>
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-6 group hover:bg-white/[0.02] transition-colors rounded-xl px-4 -mx-4">
+      <div className="flex items-center gap-4 mb-2 sm:mb-0">
+        <div className="w-10 h-10 rounded-full bg-[#121212] border border-white/5 flex items-center justify-center text-gray-400 group-hover:text-white transition-colors">
+          <Icon className="w-5 h-5" />
+        </div>
+        <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{label}</span>
       </div>
-      <span className={`text-lg font-medium break-words ${valueClass}`}>
+      <div className={`text-right text-base md:text-lg font-medium max-w-lg ${valueClass}`}>
         {value}
-      </span>
+      </div>
     </div>
   );
 }

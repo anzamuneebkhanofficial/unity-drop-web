@@ -2,15 +2,17 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { usePatientAuthStore } from '@/store/auth/auth-patient-store';
+import { usePatientAuthStore } from '@/store/auth/authPatientStore';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { toast } from 'sonner';
-import { QrCodeIcon, Mail, Lock } from 'lucide-react';
+import { Mail, Loader2 } from 'lucide-react';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CaptchaField from '@/components/common/CaptchaField';
+import PasswordField from '@/components/common/PasswordField';
 
 // ✅ Validation schema
 const loginSchema = yup.object().shape({
@@ -23,6 +25,12 @@ const PatientLoginPage = () => {
   const { login, loading, error, success, resetMessages } =
     usePatientAuthStore();
   const [captchaToken, setCaptchaToken] = useState('');
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  // Prefetch dashboard for instant transition
+  useEffect(() => {
+    router.prefetch('/patient/dashboard');
+  }, [router]);
   const {
     handleSubmit,
     control,
@@ -38,152 +46,152 @@ const PatientLoginPage = () => {
 
   const onSubmit = async (data) => {
     if (!captchaToken) {
-      toast.error('Please verify captcha');
+      toast.error('Verification pending or failed. Please refresh the page.');
       return;
     }
     const result = await login(data.email, data.password, captchaToken);
-    if (result) router.push('/patient/dashboard');
+    if (result) {
+      setIsNavigating(true);
+      router.replace('/patient/dashboard');
+    }
   };
 
-  useEffect(() => {
-    if (success) toast.success(success);
-    if (error) toast.error(error);
-    if (success || error) {
-      reset();
-      resetMessages();
-    }
-  }, [success, error, reset, resetMessages]);
+  // Removed useEffect based toasts (moved to store for zero-delay response)
 
   return (
-    <div className="flex min-h-screen bg-neutral-950 text-white">
-      {/* Left Brand Panel */}
-      <div className="hidden md:flex flex-col justify-center items-center w-1/2 bg-gradient-to-br from-neutral-800 to-neutral-900 p-10">
-        <QrCodeIcon className="h-20 w-20 text-yellow-400 mb-6" />
-        <h1 className="text-4xl font-extrabold tracking-tight">
-          Patient Panel
-        </h1>
-        <p className="text-gray-400 mt-4 text-lg text-center max-w-sm">
-          Secure login to manage your health records, appointments, and personal
-          details.
-        </p>
+    <div className="flex min-h-screen bg-bg text-white overflow-hidden">
+      {/* Left Brand Panel - Cinematic */}
+      <div className="hidden lg:flex flex-col justify-center items-center w-3/5 relative overflow-hidden bg-surface">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--highlight-hex),0.12),transparent_70%)] animate-pulse"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-white/5 rounded-full opacity-20"></div>
+
+        <div className="relative z-10 flex flex-col items-center text-center p-12 space-y-8">
+          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-highlight to-highlight/60 flex items-center justify-center shadow-[0_0_50px_rgba(var(--highlight-hex),0.35)] border border-white/10 scale-125 mb-4">
+            <span className="text-black font-black text-4xl tracking-tighter italic drop-shadow-lg">U</span>
+          </div>
+          <div className="space-y-4">
+            <h1 className="text-[clamp(2.5rem,4vw+1rem,3.5rem)] font-black tracking-tighter italic uppercase text-white leading-none">
+              UNITYDROP <br />
+              <span className="text-highlight">PATIENT PORTAL</span>
+            </h1>
+            <p className="text-text-dim font-bold text-lg uppercase tracking-widest max-w-md">
+              Secure Access to Health Records & Donor Network
+            </p>
+          </div>
+          <div className="flex items-center gap-4 pt-12">
+            <div className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-[0.3em] text-text-dim">
+              Patient Verified
+            </div>
+            <div className="px-6 py-2 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] font-black uppercase tracking-[0.3em] text-green-500">
+              Live Network
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Right Login Form */}
-      <div className="flex flex-1 items-center justify-center p-6">
+      <div className="flex flex-1 items-center justify-center p-6 md:p-8 lg:p-12 relative">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(var(--highlight-hex),0.05),transparent_50%)]"></div>
+
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="bg-neutral-900 border border-neutral-700 p-10 rounded-2xl shadow-2xl w-full max-w-md space-y-6"
+          className="bg-surface-2/40 backdrop-blur-3xl border border-white/10 p-8 md:p-10 lg:p-14 rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.8)] w-full max-w-xl space-y-10 relative z-10 theme-patient overflow-x-hidden"
         >
-          {/* Alt login options */}
-          <div className="flex flex-col items-center gap-3">
-            <Link
-              href="/donor/login"
-              className="text-sm text-yellow-400 hover:text-yellow-300 hover:underline transition"
-            >
-              Login as Donor
-            </Link>
-            <Link
-              href="/admin/login"
-              className="text-sm text-yellow-400 hover:text-yellow-300 hover:underline transition"
-            >
-              Login as Admin
-            </Link>
-            <div className="w-20 border-t border-gray-600 mt-2"></div>
+          {/* 🔒 Form lock overlay — prevents any interaction during login/navigation */}
+          {(loading || isNavigating) && (
+            <div className="absolute inset-0 rounded-[3rem] z-50 cursor-not-allowed" aria-hidden="true" />
+          )}
+          {/* Header */}
+          <div className="space-y-2 text-center">
+            <h2 className="text-3xl font-black text-white uppercase tracking-tighter italic">Patient Login</h2>
+            <p className="text-text-dim text-[10px] font-black uppercase tracking-[0.4em]">Enter Your Details</p>
           </div>
 
-          {/* Title */}
-          <h2 className="text-3xl font-bold text-center text-yellow-400">
-            Patient Login
-          </h2>
-
-          {/* Email */}
-          <div>
-            <label className="block text-gray-400 mb-2">Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
-              <Controller
-                name="email"
-                control={control}
-                render={({ field }) => (
-                  <input
-                    {...field}
-                    placeholder="Enter your email"
-                    className="w-full pl-10 bg-neutral-950 border border-neutral-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                  />
-                )}
-              />
+          <div className="formGroup">
+            {/* Email */}
+            <div className="formGroup group">
+              <label className="formLabel">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-text-dim group-focus-within:text-highlight transition-colors" />
+                <Controller
+                  name="email"
+                  control={control}
+                  render={({ field }) => (
+                    <input
+                      {...field}
+                      placeholder="Enter Email Address"
+                      className="inputField pl-14"
+                    />
+                  )}
+                />
+              </div>
+              {errors.email && (
+                <p className="formError">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
 
-          {/* Password */}
-          <div>
-            <label className="block text-gray-400 mb-2">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
+            {/* Password */}
+            <div className="formGroup group">
               <Controller
                 name="password"
                 control={control}
                 render={({ field }) => (
-                  <input
-                    {...field}
-                    type="password"
-                    placeholder="Enter your password"
-                    className="w-full pl-10 bg-neutral-950 border border-neutral-700 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  <PasswordField
+                    field={field}
+                    label="Password"
+                    placeholder="Enter Password"
+                    error={errors.password?.message}
                   />
                 )}
               />
             </div>
-            {errors.password && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.password.message}
-              </p>
-            )}
           </div>
 
-          {/* Error / Success */}
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          {success && <p className="text-green-500 text-sm">{success}</p>}
           <CaptchaField onVerify={setCaptchaToken} />
-          {/* Submit */}
+
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-yellow-400 text-black font-semibold py-3 rounded-lg hover:bg-yellow-500 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading || isNavigating}
+            className="w-full bg-highlight hover:bg-highlight/90 text-black font-black uppercase tracking-[0.2em] text-xs py-6 rounded-lg transition-all shadow-[0_10px_30px_rgba(var(--highlight-hex),0.2)] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed min-h-[44px] flex items-center justify-center gap-3"
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {(loading || isNavigating) ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Logging in Please Wait ...</span>
+              </>
+            ) : 'Submit'}
           </button>
 
-          {/* Forgot password */}
-          <p className="text-sm text-gray-400 text-center">
-            Forgot your password?{' '}
+          {/* Links Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
             <Link
               href="/patient/forgot-password"
-              className="text-yellow-400 hover:text-yellow-300 hover:underline"
+              className="text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-highlight transition-colors text-center py-2 min-h-[44px] flex items-center justify-center"
             >
-              Reset here
+              Forgot Password?
             </Link>
-          </p>
-
-          {/* Alt registration options */}
-          <div className="flex flex-col items-center gap-3">
             <Link
               href="/patient/register"
-              className="text-sm text-yellow-400 hover:text-yellow-300 hover:underline transition"
+              className="text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-highlight transition-colors text-center py-2 min-h-[44px] flex items-center justify-center"
             >
-              Register as Patient
+              New Patient Register
             </Link>
-            <Link
-              href="/donor/register"
-              className="text-sm text-yellow-400 hover:text-yellow-300 hover:underline transition"
-            >
-              Register as Donor
-            </Link>
-            <div className="w-20 border-t border-gray-600 mt-2"></div>
+          </div>
+
+          <div className="h-px bg-white/5 w-full mx-auto"></div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <p className="text-[9px] font-black text-text-dim uppercase tracking-[0.3em]">Other Portals</p>
+            <div className="flex gap-4">
+              <Link href="/donor/login" className="px-6 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-white hover:bg-white/10 transition-all min-h-[44px] flex items-center justify-center">
+                Donor
+              </Link>
+              <Link href="/admin/login" className="px-6 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-white hover:bg-white/10 transition-all min-h-[44px] flex items-center justify-center">
+                Admin
+              </Link>
+            </div>
           </div>
         </form>
       </div>

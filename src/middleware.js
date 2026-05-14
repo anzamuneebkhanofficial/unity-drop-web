@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 
 export function middleware(req) {
   const role = req.cookies.get('role')?.value;
+  const token = req.cookies.get('accessToken')?.value;
+  const is_auth = req.cookies.get('is_auth')?.value;
   const { pathname } = req.nextUrl;
 
   // ---------------------
@@ -14,18 +16,17 @@ export function middleware(req) {
     '/admin/register',
     '/admin/forgot-password',
     /^\/admin\/reset-password\/[^/]+\/[^/]+$/,
-
     '/donor/register',
     '/donor/email-verify',
     '/donor/login',
     '/donor/forgot-password',
     /^\/donor\/reset-password\/[^/]+\/[^/]+$/,
-
     '/patient/register',
     '/patient/email-verify',
     '/patient/login',
     '/patient/forgot-password',
     /^\/patient\/reset-password\/[^/]+\/[^/]+$/,
+    '/public-feedback',
   ];
 
   const isPublic = publicRoutes.some((route) =>
@@ -44,19 +45,18 @@ export function middleware(req) {
   // ---------------------
   // Role route patterns
   // ---------------------
-  const donorRoutes = ['/donor/dashboard'];
-  const patientRoutes = ['/patient/dashboard'];
 
   // ---------------------
-  // 1) Always allow home
+  // 1) Truly Public Routes (No Auth/Redirect Logic)
   // ---------------------
-  if (pathname === '/') return NextResponse.next();
+  const trulyPublic = ['/'];
+  if (trulyPublic.includes(pathname)) return NextResponse.next();
 
   // ---------------------
   // 2) Public routes
   // ---------------------
   if (isPublic) {
-    if (role) {
+    if (role || is_auth || token) {
       const dashboard = defaultRoutes[role];
       if (dashboard && pathname !== dashboard) {
         return NextResponse.redirect(new URL(dashboard, req.url));
@@ -68,7 +68,7 @@ export function middleware(req) {
   // ---------------------
   // 3) Protected route check
   // ---------------------
-  if (!role) {
+  if (!role || !is_auth || !token) {
     if (pathname.startsWith('/admin')) {
       return NextResponse.redirect(new URL('/admin/login', req.url));
     } else if (pathname.startsWith('/donor')) {
@@ -81,26 +81,25 @@ export function middleware(req) {
   // ---------------------
   // 4) Role-based access
   // ---------------------
-  if (role === 'admin') return NextResponse.next();
+  if (role === 'admin') {
+    if (pathname.startsWith('/admin')) {
+      return NextResponse.next();
+    }
+    return NextResponse.redirect(new URL(defaultRoutes.admin, req.url));
+  }
 
   if (role === 'donor') {
-    const isAllowed = donorRoutes.some(
-      (route) => pathname === route || pathname.startsWith(route)
-    );
-    if (isAllowed) return NextResponse.next();
-    if (pathname !== defaultRoutes.donor) {
-      return NextResponse.redirect(new URL(defaultRoutes.donor, req.url));
+    if (pathname.startsWith('/donor')) {
+      return NextResponse.next();
     }
+    return NextResponse.redirect(new URL(defaultRoutes.donor, req.url));
   }
 
   if (role === 'patient') {
-    const isAllowed = patientRoutes.some(
-      (route) => pathname === route || pathname.startsWith(route)
-    );
-    if (isAllowed) return NextResponse.next();
-    if (pathname !== defaultRoutes.patient) {
-      return NextResponse.redirect(new URL(defaultRoutes.patient, req.url));
+    if (pathname.startsWith('/patient')) {
+      return NextResponse.next();
     }
+    return NextResponse.redirect(new URL(defaultRoutes.patient, req.url));
   }
 
   // ---------------------
@@ -110,5 +109,15 @@ export function middleware(req) {
 }
 
 export const config = {
-  matcher: ['/((?!_next|static|favicon.ico).*)'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - manifest.json (PWA manifest)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|manifest.json).*)',
+  ],
 };
