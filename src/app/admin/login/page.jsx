@@ -51,6 +51,9 @@ const AdminLoginPage = () => {
     const result = await login(data.email, data.password, captchaToken);
     if (result) {
       setIsNavigating(true);
+      // 🔄 Next.js 15 Best Practice: Refresh the router cache to sync cookies 
+      // before navigating to protected routes.
+      router.refresh(); 
       router.replace('/admin/dashboard');
     } else {
       // The store sets error; also check for pending approval status from API

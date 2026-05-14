@@ -51,6 +51,7 @@ const DonorLoginPage = () => {
     const result = await login(data.email, data.password, captchaToken);
     if (result) {
       setIsNavigating(true);
+      router.refresh();
       router.replace('/donor/dashboard');
     }
   };
