@@ -27,17 +27,13 @@ const PatientLoginPage = () => {
   const [captchaToken, setCaptchaToken] = useState('');
   const [isNavigating, setIsNavigating] = useState(false);
 
-  // 🛡️ AUTO-PILOT REDIRECT
+  // 🛡️ Success Watchdog
   useEffect(() => {
-    if (success || (usePatientAuthStore.getState().user)) {
+    if (success) {
       router.replace('/patient/dashboard');
     }
   }, [success, router]);
 
-  // Prefetch dashboard for instant transition
-  useEffect(() => {
-    router.prefetch('/patient/dashboard');
-  }, [router]);
   const {
     handleSubmit,
     control,
@@ -59,7 +55,6 @@ const PatientLoginPage = () => {
     const result = await login(data.email, data.password, captchaToken);
     if (result) {
       setIsNavigating(true);
-      router.refresh();
       router.replace('/patient/dashboard');
     }
   };

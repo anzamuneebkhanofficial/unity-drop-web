@@ -25,14 +25,11 @@ const AdminLoginPage = () => {
   const [captchaToken, setCaptchaToken] = useState('');
   const [isNavigating, setIsNavigating] = useState(false);
 
-  // Prefetch dashboard for instant transition
+  // No prefetching here to avoid caching unauthorized redirect states
+  
+  // 🛡️ Success Watchdog: If the store reports success, ensure we move.
   useEffect(() => {
-    router.prefetch('/admin/dashboard');
-  }, [router]);
-
-  // 🛡️ AUTO-PILOT REDIRECT: If the user state is present, ensure we move to dashboard
-  useEffect(() => {
-    if (success || (useAdminAuthStore.getState().user)) {
+    if (success) {
       router.replace('/admin/dashboard');
     }
   }, [success, router]);
@@ -58,9 +55,6 @@ const AdminLoginPage = () => {
     const result = await login(data.email, data.password, captchaToken);
     if (result) {
       setIsNavigating(true);
-      // 🔄 Next.js 15 Best Practice: Refresh the router cache to sync cookies 
-      // before navigating to protected routes.
-      router.refresh(); 
       router.replace('/admin/dashboard');
     } else {
       // The store sets error; also check for pending approval status from API
