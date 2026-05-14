@@ -27,6 +27,13 @@ const PatientLoginPage = () => {
   const [captchaToken, setCaptchaToken] = useState('');
   const [isNavigating, setIsNavigating] = useState(false);
 
+  // 🛡️ AUTO-PILOT REDIRECT
+  useEffect(() => {
+    if (success || (usePatientAuthStore.getState().user)) {
+      router.replace('/patient/dashboard');
+    }
+  }, [success, router]);
+
   // Prefetch dashboard for instant transition
   useEffect(() => {
     router.prefetch('/patient/dashboard');

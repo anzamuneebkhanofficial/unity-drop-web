@@ -30,6 +30,13 @@ const AdminLoginPage = () => {
     router.prefetch('/admin/dashboard');
   }, [router]);
 
+  // 🛡️ AUTO-PILOT REDIRECT: If the user state is present, ensure we move to dashboard
+  useEffect(() => {
+    if (success || (useAdminAuthStore.getState().user)) {
+      router.replace('/admin/dashboard');
+    }
+  }, [success, router]);
+
   const {
     handleSubmit,
     control,

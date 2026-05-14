@@ -26,6 +26,13 @@ const DonorLoginPage = () => {
   const [captchaToken, setCaptchaToken] = useState('');
   const [isNavigating, setIsNavigating] = useState(false);
 
+  // 🛡️ AUTO-PILOT REDIRECT
+  useEffect(() => {
+    if (success || (useDonorAuthStore.getState().user)) {
+      router.replace('/donor/dashboard');
+    }
+  }, [success, router]);
+
   // Prefetch dashboard for instant transition
   useEffect(() => {
     router.prefetch('/donor/dashboard');
