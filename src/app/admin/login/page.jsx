@@ -27,8 +27,7 @@ const AdminLoginPage = () => {
 
   // Prefetch dashboard for instant transition
   useEffect(() => {
-    // prefetch disabled for sync reliability during login
-    // router.prefetch('/admin/dashboard');
+    router.prefetch('/admin/dashboard');
   }, [router]);
 
   const {
@@ -52,7 +51,7 @@ const AdminLoginPage = () => {
     const result = await login(data.email, data.password, captchaToken);
     if (result) {
       setIsNavigating(true);
-      window.location.href = '/admin/dashboard';
+      router.replace('/admin/dashboard');
     } else {
       // The store sets error; also check for pending approval status from API
       const { error } = useAdminAuthStore.getState();

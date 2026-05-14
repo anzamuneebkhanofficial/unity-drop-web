@@ -52,7 +52,7 @@ const PatientLoginPage = () => {
     const result = await login(data.email, data.password, captchaToken);
     if (result) {
       setIsNavigating(true);
-      window.location.href = '/patient/dashboard';
+      router.replace('/patient/dashboard');
     }
   };
 
