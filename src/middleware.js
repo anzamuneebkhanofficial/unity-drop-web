@@ -47,16 +47,28 @@ export function middleware(req) {
   // ---------------------
 
   // ---------------------
-  // 1) Truly Public Routes (No Auth/Redirect Logic)
+  // ---------------------
+  // 1) Truly Public Routes & Static Assets (No Auth/Redirect Logic)
   // ---------------------
   const trulyPublic = ['/'];
-  if (trulyPublic.includes(pathname)) return NextResponse.next();
+  const staticExtensions = [
+    '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', 
+    '.json', '.txt', '.xml', '.webmanifest', '.map'
+  ];
+
+  if (
+    trulyPublic.includes(pathname) || 
+    staticExtensions.some(ext => pathname.toLowerCase().endsWith(ext)) ||
+    pathname.startsWith('/icons/')
+  ) {
+    return NextResponse.next();
+  }
 
   // ---------------------
   // 2) Public routes
   // ---------------------
   if (isPublic) {
-    if (role || is_auth || token) {
+    if (role && is_auth && token) {
       const dashboard = defaultRoutes[role];
       if (dashboard && pathname !== dashboard) {
         return NextResponse.redirect(new URL(dashboard, req.url));
@@ -73,39 +85,35 @@ export function middleware(req) {
       return NextResponse.redirect(new URL('/admin/login', req.url));
     } else if (pathname.startsWith('/donor')) {
       return NextResponse.redirect(new URL('/donor/login', req.url));
-    } else {
+    } else if (pathname.startsWith('/patient')) {
       return NextResponse.redirect(new URL('/patient/login', req.url));
     }
+    // For any other protected route, let the application handle it or default to donor login
+    return NextResponse.next();
   }
 
   // ---------------------
   // 4) Role-based access
   // ---------------------
   if (role === 'admin') {
-    if (pathname.startsWith('/admin')) {
-      return NextResponse.next();
-    }
+    if (pathname.startsWith('/admin')) return NextResponse.next();
     return NextResponse.redirect(new URL(defaultRoutes.admin, req.url));
   }
 
   if (role === 'donor') {
-    if (pathname.startsWith('/donor')) {
-      return NextResponse.next();
-    }
+    if (pathname.startsWith('/donor')) return NextResponse.next();
     return NextResponse.redirect(new URL(defaultRoutes.donor, req.url));
   }
 
   if (role === 'patient') {
-    if (pathname.startsWith('/patient')) {
-      return NextResponse.next();
-    }
+    if (pathname.startsWith('/patient')) return NextResponse.next();
     return NextResponse.redirect(new URL(defaultRoutes.patient, req.url));
   }
 
   // ---------------------
   // 5) Unknown role fallback
   // ---------------------
-  return NextResponse.redirect(new URL('/donor/login', req.url));
+  return NextResponse.next();
 }
 
 export const config = {
@@ -115,9 +123,7 @@ export const config = {
      * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - manifest.json (PWA manifest)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|manifest.json).*)',
+    '/((?!api|_next/static|_next/image).*)',
   ],
 };
