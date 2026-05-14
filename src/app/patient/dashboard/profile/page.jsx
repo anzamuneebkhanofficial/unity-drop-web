@@ -59,76 +59,76 @@ export default function PatientProfileView() {
               {user.fullName?.charAt(0).toUpperCase() || 'P'}
               <div className="absolute inset-0 bg-white/5 group-hover:bg-transparent transition duration-300"></div>
             </div>
-            </div>
           </div>
+        </div>
 
-          {/* Name & Role */}
-          <div className="flex flex-col items-center md:items-start text-center md:text-left flex-1 space-y-3 relative z-10">
-            <div className="flex items-center gap-3">
-              <div className="h-2 w-2 rounded-full bg-highlight shadow-[0_0_10px_rgba(var(--highlight-hex),0.5)]"></div>
-              <p className="text-xs font-black uppercase tracking-[0.4em] text-highlight italic">Verified Patient</p>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter uppercase italic leading-none">
-              {displayValue(user.fullName)}
-            </h1>
-            <div className="flex items-center gap-4 pt-2">
-              <div className="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-text-dim">
-                Role: {displayValue(user.role)}
-              </div>
+        {/* Name & Role */}
+        <div className="flex flex-col items-center md:items-start text-center md:text-left flex-1 space-y-3 relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="h-2 w-2 rounded-full bg-highlight shadow-[0_0_10px_rgba(var(--highlight-hex),0.5)]"></div>
+            <p className="text-xs font-black uppercase tracking-[0.4em] text-highlight italic">Verified Patient</p>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter uppercase italic leading-none">
+            {displayValue(user.fullName)}
+          </h1>
+          <div className="flex items-center gap-4 pt-2">
+            <div className="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-text-dim">
+              Role: {displayValue(user.role)}
             </div>
           </div>
         </div>
 
-        {/* Profile Details Grid */}
-        <div className="grid grid-cols-1 gap-8">
-          <div className="bg-surface-2 border border-white/5 rounded-xl p-10 md:p-14 shadow-2xl relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/[0.02] rounded-full -mr-32 -mt-32"></div>
 
-            <div className="flex items-center gap-6 mb-12 pb-8 border-b border-white/5 relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-bg border border-white/5 flex items-center justify-center text-highlight shadow-inner">
-                <User className="w-6 h-6" />
-              </div>
-              <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Personal Info</h2>
-            </div>
+      {/* Profile Details Grid */}
+      <div className="grid grid-cols-1 gap-8">
+        <div className="bg-surface-2 border border-white/5 rounded-xl p-10 md:p-14 shadow-2xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/[0.02] rounded-full -mr-32 -mt-32"></div>
 
-            <div className="flex flex-col divide-y divide-white/5 relative z-10">
-              <ProfileRow icon={User} label="Full Name" value={displayValue(user.fullName)} />
-              <ProfileRow icon={Mail} label="Email" value={displayValue(user.email)} />
-              <ProfileRow icon={Droplet} label="Blood Group" value={displayValue(user.bloodGroup)} valueClass="text-donor font-black scale-110 origin-right transition-transform group-hover:scale-125" />
-              <ProfileRow icon={MapPin} label="Location" value={displayValue(user.location)} />
-              <ProfileRow icon={Phone} label="Phone" value={displayValue(user.phone)} />
+          <div className="flex items-center gap-6 mb-12 pb-8 border-b border-white/5 relative z-10">
+            <div className="w-12 h-12 rounded-2xl bg-bg border border-white/5 flex items-center justify-center text-highlight shadow-inner">
+              <User className="w-6 h-6" />
             </div>
+            <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Personal Info</h2>
           </div>
 
-          <div className="bg-surface-2 border border-white/5 rounded-xl p-10 md:p-14 shadow-2xl relative overflow-hidden group">
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/[0.02] rounded-full -ml-32 -mb-32"></div>
-
-            <div className="flex items-center gap-6 mb-12 pb-8 border-b border-white/5 relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-bg border border-white/5 flex items-center justify-center text-highlight shadow-inner">
-                <Hospital className="w-6 h-6" />
-              </div>
-              <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Hospital Info</h2>
-            </div>
-
-            <div className="flex flex-col divide-y divide-white/5 relative z-10">
-              <ProfileRow icon={Building2} label="Hospital Name" value={displayValue(user.hospitalName)} />
-               <ProfileRow icon={MapPin} label="Hospital Location" value={displayValue(user.hospitalLocation)} />
-              <ProfileRow
-                icon={user.emailVerified ? CheckCircle2 : XCircle}
-                label="Email Verified"
-                value={user.emailVerified ? 'Yes' : 'No'}
-                valueClass={user.emailVerified ? 'text-green-500 font-black italic' : 'text-highlight font-black italic'}
-              />
-            </div>
+          <div className="flex flex-col divide-y divide-white/5 relative z-10">
+            <ProfileRow icon={User} label="Full Name" value={displayValue(user.fullName)} />
+            <ProfileRow icon={Mail} label="Email" value={displayValue(user.email)} />
+            <ProfileRow icon={Droplet} label="Blood Group" value={displayValue(user.bloodGroup)} valueClass="text-donor font-black scale-110 origin-right transition-transform group-hover:scale-125" />
+            <ProfileRow icon={MapPin} label="Location" value={displayValue(user.location)} />
+            <ProfileRow icon={Phone} label="Phone" value={displayValue(user.phone)} />
           </div>
-
-          {/* Delete Account */}
-          <DangerZone
-            roleName="Patient"
-            onDelete={handleDeleteAccount}
-            description="Permanently delete your patient account. This removes all your data, session, and medical records from our system. This action "
-          />
         </div>
+
+        <div className="bg-surface-2 border border-white/5 rounded-xl p-10 md:p-14 shadow-2xl relative overflow-hidden group">
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/[0.02] rounded-full -ml-32 -mb-32"></div>
+
+          <div className="flex items-center gap-6 mb-12 pb-8 border-b border-white/5 relative z-10">
+            <div className="w-12 h-12 rounded-2xl bg-bg border border-white/5 flex items-center justify-center text-highlight shadow-inner">
+              <Hospital className="w-6 h-6" />
+            </div>
+            <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Hospital Info</h2>
+          </div>
+
+          <div className="flex flex-col divide-y divide-white/5 relative z-10">
+            <ProfileRow icon={Building2} label="Hospital Name" value={displayValue(user.hospitalName)} />
+            <ProfileRow icon={MapPin} label="Hospital Location" value={displayValue(user.hospitalLocation)} />
+            <ProfileRow
+              icon={user.emailVerified ? CheckCircle2 : XCircle}
+              label="Email Verified"
+              value={user.emailVerified ? 'Yes' : 'No'}
+              valueClass={user.emailVerified ? 'text-green-500 font-black italic' : 'text-highlight font-black italic'}
+            />
+          </div>
+        </div>
+
+        {/* Delete Account */}
+        <DangerZone
+          roleName="Patient"
+          onDelete={handleDeleteAccount}
+          description="Permanently delete your patient account. This removes all your data, session, and medical records from our system. This action "
+        />
+      </div>
       </div>
     </>
   );

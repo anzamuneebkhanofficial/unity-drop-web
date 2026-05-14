@@ -57,46 +57,46 @@ export default function DonorProfileView() {
               {user.fullName?.charAt(0).toUpperCase()}
               <div className="absolute inset-0 bg-white/5 group-hover:bg-transparent transition duration-300"></div>
             </div>
-            </div>
-          </div>
-
-          {/* Info Section */}
-          <div className="flex flex-col items-center md:items-start text-center md:text-left flex-1">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight uppercase mb-2">
-              {displayValue(user.fullName)}
-            </h1>
-            <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-widest text-donor">
-              <Shield className="w-4 h-4" />
-              <span>{displayValue(user.role)} PROFILE</span>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Horizontal Data List Card */}
-        <div className="bg-[#0c0c0c] border border-white/5 rounded-xl p-8 md:p-12 shadow-2xl relative">
-          <div className="flex items-center gap-3 mb-8 pb-6 border-b border-white/5">
-            <User className="w-6 h-6 text-gray-400" />
-            <h2 className="text-xl font-bold text-white uppercase tracking-wider">Personal Details</h2>
-          </div>
-
-          <div className="flex flex-col divide-y divide-white/5">
-            <ProfileRow icon={User} label="Full Name" value={displayValue(user.fullName)} />
-            <ProfileRow icon={Mail} label="Email" value={displayValue(user.email)} />
-            <ProfileRow icon={Shield} label="Role" value={displayValue(user.role)} />
-            <ProfileRow icon={User} label="Gender" value={displayValue(user.gender)} />
-            <ProfileRow icon={Droplet} label="Blood Group" value={displayValue(user.bloodGroup)} valueClass="text-donor font-bold" />
-            <ProfileRow icon={MapPin} label="Location" value={displayValue(user.location)} />
-            <ProfileRow icon={Phone} label="Phone Number" value={displayValue(user.phone)} />
           </div>
         </div>
 
-        {/* ⚠️ Reusable Danger Zone */}
-        <DangerZone
-          roleName="Donor"
-          onDelete={handleDeleteAccount}
-          description="Delete your account forever. This will remove all your details from our system. This action cannot be undone."
-        />
+        {/* Info Section */}
+        <div className="flex flex-col items-center md:items-start text-center md:text-left flex-1">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight uppercase mb-2">
+            {displayValue(user.fullName)}
+          </h1>
+          <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-widest text-donor">
+            <Shield className="w-4 h-4" />
+            <span>{displayValue(user.role)} PROFILE</span>
+          </div>
+        </div>
+
+
+
+      {/* Horizontal Data List Card */}
+      <div className="bg-[#0c0c0c] border border-white/5 rounded-xl p-8 md:p-12 shadow-2xl relative">
+        <div className="flex items-center gap-3 mb-8 pb-6 border-b border-white/5">
+          <User className="w-6 h-6 text-gray-400" />
+          <h2 className="text-xl font-bold text-white uppercase tracking-wider">Personal Details</h2>
+        </div>
+
+        <div className="flex flex-col divide-y divide-white/5">
+          <ProfileRow icon={User} label="Full Name" value={displayValue(user.fullName)} />
+          <ProfileRow icon={Mail} label="Email" value={displayValue(user.email)} />
+          <ProfileRow icon={Shield} label="Role" value={displayValue(user.role)} />
+          <ProfileRow icon={User} label="Gender" value={displayValue(user.gender)} />
+          <ProfileRow icon={Droplet} label="Blood Group" value={displayValue(user.bloodGroup)} valueClass="text-donor font-bold" />
+          <ProfileRow icon={MapPin} label="Location" value={displayValue(user.location)} />
+          <ProfileRow icon={Phone} label="Phone Number" value={displayValue(user.phone)} />
+        </div>
+      </div>
+
+      {/* ⚠️ Reusable Danger Zone */}
+      <DangerZone
+        roleName="Donor"
+        onDelete={handleDeleteAccount}
+        description="Delete your account forever. This will remove all your details from our system. This action cannot be undone."
+      />
       </div>
     </>
   );
