@@ -28,7 +28,7 @@ export default function AdminChangePassword() {
   const {
     handleSubmit,
     control,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(changeSchema),
     defaultValues: { password: '', password_confirmation: '' },
@@ -39,17 +39,18 @@ export default function AdminChangePassword() {
       data.password,
       data.password_confirmation
     );
-    if (result) router.replace('/admin/dashboard');
+    if (result) {
+      router.replace('/admin/dashboard');
+    }
   };
 
   return (
     <div className="w-full max-w-4xl mx-auto animate-fadeIn pb-12">
       <div className="bg-[#0c0c0c] border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl relative">
-        {/* Top color bar */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-highlight opacity-50"></div>
 
         <div className="p-8 md:p-12">
-          {/* Header */}
+
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 pb-8 border-b border-white/5">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-[#121212] border border-white/5 flex items-center justify-center text-blue-500">
@@ -62,11 +63,11 @@ export default function AdminChangePassword() {
             </div>
             <button
               onClick={handleSubmit(onSubmit)}
-              disabled={loading}
+              disabled={isSubmitting || loading}
               className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-full font-bold uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(59,130,246,0.2)]"
             >
               <Save className="w-4 h-4" />
-              {loading ? 'Saving...' : 'Save Password'}
+              {isSubmitting || loading ? 'Saving...' : 'Save Password'}
             </button>
           </div>
 
@@ -76,8 +77,6 @@ export default function AdminChangePassword() {
                 <KeyRound className="w-5 h-5 text-gray-500" />
                 <h3 className="text-sm font-bold text-gray-300 uppercase tracking-widest">New Password</h3>
               </div>
-
-              {/* New Password */}
               <div className="space-y-2">
                 <Controller
                   name="password"
@@ -92,8 +91,6 @@ export default function AdminChangePassword() {
                   )}
                 />
               </div>
-
-              {/* Confirm Password */}
               <div className="space-y-2">
                 <Controller
                   name="password_confirmation"

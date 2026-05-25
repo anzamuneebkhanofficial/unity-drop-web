@@ -1,7 +1,7 @@
-/** @format */
+
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -10,6 +10,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { usePatientAuthStore } from '@/store/auth/authPatientStore';
 import CaptchaField from '@/components/common/CaptchaField';
 import PasswordField from '@/components/common/PasswordField';
+import { Loader2 } from 'lucide-react';
 
 const resetSchema = yup.object().shape({
   password: yup
@@ -23,17 +24,22 @@ const resetSchema = yup.object().shape({
 });
 
 const PatientResetPassword = () => {
-  const { resetPassword, loading, error, success, resetMessages } =
-    usePatientAuthStore();
-  const [captchaToken, setCaptchaToken] = useState('');
+  const { resetPassword, loading, resetMessages } = usePatientAuthStore();
   const router = useRouter();
   const { id, token } = useParams();
+
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  //Clean up store messages on mount
+  useEffect(() => {
+    resetMessages();
+  }, [resetMessages]);
 
   const {
     handleSubmit,
     control,
-    reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(resetSchema),
     defaultValues: {
@@ -47,6 +53,7 @@ const PatientResetPassword = () => {
       toast.error('Verification pending or failed. Please refresh the page.');
       return;
     }
+
     const result = await resetPassword(
       id,
       token,
@@ -54,21 +61,17 @@ const PatientResetPassword = () => {
       data.password_confirmation,
       captchaToken
     );
-    if (result) router.replace('/patient/login');
+
+    if (result) {
+      setIsNavigating(true);
+      router.replace('/patient/login');
+    }
   };
 
-  // useEffect(() => {
-  //   if (success) toast.success(success);
-  //   if (error) toast.error(error);
-  //   if (success || error) {
-  //     reset();
-  //     resetMessages();
-  //   }
-  // }, [success, error, reset, resetMessages]);
+  const isFormDisabled = isSubmitting || isNavigating || loading;
 
   return (
     <div className="flex min-h-screen bg-bg text-white overflow-hidden">
-      {/* Left Brand Panel - Cinematic */}
       <div className="hidden lg:flex flex-col justify-center items-center w-3/5 relative overflow-hidden bg-surface">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--highlight-hex),0.12),transparent_70%)] animate-pulse"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-white/5 rounded-full opacity-20"></div>
@@ -96,8 +99,6 @@ const PatientResetPassword = () => {
           </div>
         </div>
       </div>
-
-      {/* Right Form */}
       <div className="flex flex-1 items-center justify-center p-8 md:p-12 relative">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(var(--highlight-hex),0.05),transparent_50%)]"></div>
 
@@ -105,14 +106,18 @@ const PatientResetPassword = () => {
           onSubmit={handleSubmit(onSubmit)}
           className="bg-surface-2/40 backdrop-blur-3xl border border-white/10 p-10 md:p-14 rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.8)] w-full max-w-xl space-y-10 relative z-10"
         >
-          {/* Header */}
+
+          {isFormDisabled && (
+            <div className="absolute inset-0 rounded-[3rem] z-50 cursor-not-allowed" aria-hidden="true" />
+          )}
+
+
           <div className="space-y-2 text-center">
             <h2 className="text-3xl font-black text-white uppercase tracking-tighter italic">Reset Password</h2>
             <p className="text-text-dim text-[10px] font-black uppercase tracking-[0.4em]">Set your new password</p>
           </div>
 
           <div className="space-y-6">
-
             <div className="space-y-2 group">
               <Controller
                 name="password"
@@ -120,9 +125,12 @@ const PatientResetPassword = () => {
                 render={({ field }) => (
                   <PasswordField
                     field={field}
+                    id="password"
+                    autoComplete="new-password"
                     label="New Password"
                     placeholder="Enter new password"
                     error={errors.password?.message}
+                    disabled={isFormDisabled}
                     className="p-5 bg-bg rounded-2xl border-white/5 focus-within:border-highlight/50"
                   />
                 )}
@@ -136,27 +144,35 @@ const PatientResetPassword = () => {
                 render={({ field }) => (
                   <PasswordField
                     field={field}
+                    id="password_confirmation"
+                    autoComplete="new-password"
                     label="Confirm Password"
                     placeholder="Confirm new password"
                     error={errors.password_confirmation?.message}
+                    disabled={isFormDisabled}
                     className="p-5 bg-bg rounded-2xl border-white/5 focus-within:border-highlight/50"
                   />
                 )}
               />
             </div>
-
           </div>
 
           <CaptchaField onVerify={setCaptchaToken} />
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-highlight hover:bg-highlight/90 text-black font-black uppercase tracking-[0.2em] text-xs py-6 rounded-2xl transition-all shadow-[0_10px_30px_rgba(var(--highlight-hex),0.2)] active:scale-[0.98] disabled:opacity-50"
+            disabled={isFormDisabled}
+            className="w-full bg-highlight hover:bg-highlight/90 text-black font-black uppercase tracking-[0.2em] text-xs py-6 rounded-2xl transition-all shadow-[0_10px_30px_rgba(var(--highlight-hex),0.2)] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {loading ? 'Saving...' : 'Save Password'}
+            {isFormDisabled ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              'Save Password'
+            )}
           </button>
-
         </form>
       </div>
     </div>

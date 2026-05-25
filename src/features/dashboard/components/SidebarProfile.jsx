@@ -19,15 +19,14 @@ export default function SidebarProfile({ user, basePath, onLogout }) {
           : 'hover:bg-white/5 active:scale-95'
           }`}
       >
-        <div className="relative">
-          <Image
-            src={avatar?.src || avatar || '/default-avatar.png'}
-            alt="Profile"
-            width={40}
-            height={40}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full ring-2 ring-donor/50 ring-offset-2 sm:ring-offset-4 ring-offset-bg bg-surface-2"
-          />
-        </div>
+        <Image
+          src={avatar?.src || avatar || '/default-avatar.png'}
+          alt="Profile"
+          width={40}
+          height={40}
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full ring-2 ring-donor/50 ring-offset-2 sm:ring-offset-4 ring-offset-bg bg-surface-2"
+        />
+
         <div className="flex-1 overflow-hidden">
           <p className="font-black text-xs sm:text-sm truncate text-white leading-tight">
             {name || 'User Account'}
@@ -36,6 +35,7 @@ export default function SidebarProfile({ user, basePath, onLogout }) {
             {role}
           </p>
         </div>
+
         <ChevronDown
           className={`text-text-muted transition-transform duration-500 ${profileOpen ? 'rotate-180 text-white' : ''}`}
         />
@@ -59,7 +59,8 @@ export default function SidebarProfile({ user, basePath, onLogout }) {
                 onClick={onLogout}
                 className="w-full flex items-center gap-3 px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-[11px] font-black uppercase tracking-widest rounded-xl text-donor/80 hover:bg-donor/10 hover:text-donor transition-all active:translate-x-1 min-h-[44px]"
               >
-                <LogOut size={14} className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Sign Out</span>
+                <LogOut size={14} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Sign Out</span>
               </button>
             </div>
           </motion.div>
@@ -73,15 +74,10 @@ function ProfileLink({ href, icon: Icon, label }) {
   return (
     <Link
       href={href}
-      onClick={() => {
-        // Close sidebar on mobile after navigation, keep open on desktop
-        if (window.innerWidth < 1024) {
-          // This will be handled by the parent component
-        }
-      }}
       className="flex items-center gap-3 px-3 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-[11px] font-black uppercase tracking-widest rounded-xl text-text-muted hover:bg-white/5 hover:text-white transition-all active:scale-95 active:translate-x-1 min-h-[44px]"
     >
-      <Icon size={14} className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-donor" /> <span className="hidden sm:inline">{label}</span>
+      <Icon size={14} className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-donor" />
+      <span className="hidden sm:inline">{label}</span>
     </Link>
   );
 }

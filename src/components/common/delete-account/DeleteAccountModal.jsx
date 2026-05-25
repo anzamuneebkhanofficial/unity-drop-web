@@ -1,19 +1,9 @@
-/** @format */
+
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { AlertTriangle, Trash2, X, Loader2, ShieldAlert } from 'lucide-react';
 
-/**
- * A professional, reusable Delete Account confirmation modal.
- *
- * Props:
- *   isOpen      {boolean}   – controls visibility
- *   onClose     {function}  – called when the user cancels
- *   onConfirm   {function}  – called when the user confirms deletion (async)
- *   loading     {boolean}   – shows spinner while deletion is in-progress
- *   roleName    {string}    – e.g. "Donor", "Patient", "Admin" (used in copy)
- */
 export default function DeleteAccountModal({
   isOpen,
   onClose,
@@ -22,31 +12,43 @@ export default function DeleteAccountModal({
   roleName = 'Account',
   description = null,
 }) {
+  // Handle background scroll lock & escape key 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && !loading) {
+        onClose();
+      }
+    };
+    // Lock body scroll
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, loading, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    /* Backdrop */
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
       aria-modal="true"
       role="dialog"
       aria-labelledby="delete-modal-title"
     >
-      {/* Dark overlay */}
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={!loading ? onClose : undefined}
+        aria-hidden="true"
       />
-
-      {/* Modal card */}
       <div className="relative z-10 w-full max-w-md animate-fadeIn">
         <div className="bg-[#0d0d0d] border border-red-500/30 rounded-[1.5rem] shadow-[0_0_60px_rgba(239,68,68,0.15)] overflow-hidden">
-          {/* Top danger stripe */}
           <div className="h-1 w-full bg-gradient-to-r from-red-600 via-red-500 to-orange-500" />
-
-          {/* Content */}
           <div className="p-8">
-            {/* Icon + Close */}
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center shadow-inner">
@@ -65,8 +67,8 @@ export default function DeleteAccountModal({
                 </div>
               </div>
 
-              {/* Close (X) button */}
               <button
+                type="button"
                 id="delete-modal-cancel-x"
                 onClick={onClose}
                 disabled={loading}
@@ -77,7 +79,6 @@ export default function DeleteAccountModal({
               </button>
             </div>
 
-            {/* Warning message */}
             <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-4 mb-6">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
@@ -101,10 +102,9 @@ export default function DeleteAccountModal({
               </div>
             </div>
 
-            {/* Action buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
-              {/* Cancel */}
               <button
+                type="button"
                 id="delete-modal-cancel-btn"
                 onClick={onClose}
                 disabled={loading}
@@ -112,9 +112,8 @@ export default function DeleteAccountModal({
               >
                 Cancel
               </button>
-
-              {/* Confirm Delete */}
               <button
+                type="button"
                 id="delete-modal-confirm-btn"
                 onClick={onConfirm}
                 disabled={loading}

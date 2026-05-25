@@ -5,12 +5,11 @@ import { Users, Heart } from 'lucide-react';
 const HeroSection = () => {
     return (
         <section className="bg-bg text-white relative overflow-hidden min-h-[90dvh] flex items-center">
-            {/* Background Glow Effect - Cinematic */}
+
             <div className="absolute top-0 left-1/4 w-[1000px] h-[700px] bg-donor/5 rounded-full blur-[150px] pointer-events-none" />
             <div className="absolute bottom-0 right-1/4 w-[1000px] h-[700px] bg-highlight/5 rounded-full blur-[150px] pointer-events-none" />
 
             <div className="container mx-auto px-6 pt-32 pb-24 relative z-10 flex flex-col lg:flex-row items-center gap-16 w-full max-w-[2000px]">
-                {/* Left Side: Text Content */}
                 <div className="lg:w-3/5 text-center lg:text-left space-y-10">
                     <div className="inline-flex items-center gap-3 px-6 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-black tracking-[0.3em] uppercase text-highlight italic backdrop-blur-md">
                         <span className="w-2 h-2 rounded-full bg-donor animate-pulse"></span>
@@ -33,10 +32,7 @@ const HeroSection = () => {
                         </Link>
                     </div>
                 </div>
-
-                {/* Right Side: Stats Cards */}
                 <div className="lg:w-2/5 flex flex-col gap-6 w-full max-w-md relative">
-                    {/* Decorative Elements */}
                     <div className="absolute -top-20 -right-20 w-64 h-64 bg-donor/10 rounded-full blur-3xl animate-pulse lg:block hidden" />
 
                     <div className="bg-surface/40 backdrop-blur-2xl border border-white/5 p-10 rounded-xl shadow-[0_30px_100px_rgba(0,0,0,0.6)] transform hover:-translate-y-2 transition-all duration-500 hover:border-highlight/30 group">

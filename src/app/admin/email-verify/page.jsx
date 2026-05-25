@@ -1,7 +1,9 @@
+
+
 /** @format */
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -10,6 +12,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAdminAuthStore } from '@/store/auth/authAdminStore';
 import CaptchaField from '@/components/common/CaptchaField';
+import { Loader2 } from 'lucide-react';
 
 const verifySchema = yup.object().shape({
   email: yup.string().email('Invalid email').required('Email is required'),
@@ -18,14 +21,20 @@ const verifySchema = yup.object().shape({
 
 const AdminVerifyEmail = () => {
   const router = useRouter();
-  const { verifyEmail, loading, error, success, resetMessages } = useAdminAuthStore();
+  const { verifyEmail, loading, resetMessages } = useAdminAuthStore();
+
   const [captchaToken, setCaptchaToken] = useState('');
-  
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  // Clean up store messages on mount
+  useEffect(() => {
+    resetMessages();
+  }, [resetMessages]);
+
   const {
     handleSubmit,
     control,
-    reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(verifySchema),
     defaultValues: { email: '', otp: '' },
@@ -36,24 +45,20 @@ const AdminVerifyEmail = () => {
       toast.error('Verification pending or failed. Please refresh the page.');
       return;
     }
+
     const result = await verifyEmail(data.email, data.otp, captchaToken);
+
     if (result) {
-      // Check if this admin is pending approval (non-super admin)
-      // The store's verifyEmail returns true on success, but the server sends isPendingApproval flag.
-      // We rely on the success message stored in the store to determine this.
-      const { success: successMsg } = useAdminAuthStore.getState();
-      if (successMsg && successMsg.toLowerCase().includes('pending')) {
-        toast.success('Email verified! Waiting for Super Admin approval. Check your email for updates.', { duration: 6000 });
-      } else {
-        toast.success('Email verified! You can now log in.');
-      }
+      setIsNavigating(true);
       router.replace('/admin/login');
     }
   };
 
+  const isFormDisabled = isSubmitting || loading || isNavigating;
+
   return (
     <div className="flex min-h-screen bg-bg text-white overflow-hidden">
-      {/* Left Brand Panel - Cinematic */}
+
       <div className="hidden lg:flex flex-col justify-center items-center w-3/5 relative overflow-hidden bg-surface">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--highlight-hex),0.12),transparent_70%)] animate-pulse"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-white/5 rounded-full opacity-20"></div>
@@ -81,8 +86,6 @@ const AdminVerifyEmail = () => {
           </div>
         </div>
       </div>
-
-      {/* Right Form */}
       <div className="flex flex-1 items-center justify-center p-8 md:p-12 relative">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(var(--highlight-hex),0.05),transparent_50%)]"></div>
 
@@ -90,7 +93,9 @@ const AdminVerifyEmail = () => {
           onSubmit={handleSubmit(onSubmit)}
           className="bg-surface-2/40 backdrop-blur-3xl border border-white/10 p-10 md:p-14 rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.8)] w-full max-w-xl space-y-10 relative z-10"
         >
-          {/* Header */}
+          {isFormDisabled && (
+            <div className="absolute inset-0 rounded-[3rem] z-50 cursor-not-allowed" aria-hidden="true" />
+          )}
           <div className="space-y-2 text-center">
             <h2 className="text-3xl font-black text-white uppercase tracking-tighter italic">Verify Email</h2>
             <p className="text-text-dim text-[10px] font-black uppercase tracking-[0.4em]">Verification code</p>
@@ -98,7 +103,9 @@ const AdminVerifyEmail = () => {
 
           <div className="space-y-6">
             <div className="space-y-2 group">
-              <label className="text-[10px] font-black uppercase text-text-dim tracking-[0.2em] ml-2 group-focus-within:text-highlight transition-colors">Admin Email</label>
+              <label htmlFor="email" className="text-[10px] font-black uppercase text-text-dim tracking-[0.2em] ml-2 group-focus-within:text-highlight transition-colors cursor-pointer">
+                Admin Email
+              </label>
               <div className="relative">
                 <Controller
                   name="email"
@@ -106,8 +113,12 @@ const AdminVerifyEmail = () => {
                   render={({ field }) => (
                     <input
                       {...field}
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      disabled={isFormDisabled}
                       placeholder="Enter your email"
-                      className="w-full bg-bg border border-white/5 text-white p-5 rounded-2xl focus:outline-none focus:border-highlight/50 transition-all font-bold tracking-tight"
+                      className="w-full bg-bg border border-white/5 text-white p-5 rounded-2xl focus:outline-none focus:border-highlight/50 transition-all font-bold tracking-tight disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   )}
                 />
@@ -120,7 +131,9 @@ const AdminVerifyEmail = () => {
             </div>
 
             <div className="space-y-2 group">
-              <label className="text-[10px] font-black uppercase text-text-dim tracking-[0.2em] ml-2 group-focus-within:text-highlight transition-colors">Verification OTP</label>
+              <label htmlFor="otp" className="text-[10px] font-black uppercase text-text-dim tracking-[0.2em] ml-2 group-focus-within:text-highlight transition-colors cursor-pointer">
+                Verification OTP
+              </label>
               <div className="relative">
                 <Controller
                   name="otp"
@@ -128,8 +141,12 @@ const AdminVerifyEmail = () => {
                   render={({ field }) => (
                     <input
                       {...field}
+                      id="otp"
+                      type="text"
+                      autoComplete="one-time-code"
+                      disabled={isFormDisabled}
                       placeholder="Enter the code"
-                      className="w-full bg-bg border border-white/5 text-white p-5 rounded-2xl focus:outline-none focus:border-highlight/50 transition-all font-bold text-center tracking-[0.5em]"
+                      className="w-full bg-bg border border-white/5 text-white p-5 rounded-2xl focus:outline-none focus:border-highlight/50 transition-all font-bold text-center tracking-[0.5em] disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   )}
                 />
@@ -146,16 +163,23 @@ const AdminVerifyEmail = () => {
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-highlight hover:bg-highlight/90 text-black font-black uppercase tracking-[0.2em] text-xs py-6 rounded-2xl transition-all shadow-[0_10px_30px_rgba(var(--highlight-hex),0.2)] active:scale-[0.98] disabled:opacity-50"
+            disabled={isFormDisabled}
+            className="w-full bg-highlight hover:bg-highlight/90 text-black font-black uppercase tracking-[0.2em] text-xs py-6 rounded-2xl transition-all shadow-[0_10px_30px_rgba(var(--highlight-hex),0.2)] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {loading ? 'Verifying...' : 'Verify Email'}
+            {isFormDisabled ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Verifying...</span>
+              </>
+            ) : (
+              'Verify Email'
+            )}
           </button>
 
           <div className="text-center pt-4">
             <Link
               href="/admin/login"
-              className="text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-highlight transition-colors py-2"
+              className="text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-highlight transition-colors py-2 relative z-10"
             >
               Already verified? Login
             </Link>

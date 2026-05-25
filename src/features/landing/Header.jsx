@@ -34,8 +34,6 @@ const Header = () => {
       document.body.style.overflow = 'unset';
     };
   }, [isMenuOpen]);
-
-  // Auth Stores
   const donorUser = useDonorAuthStore((state) => state.user);
   const patientUser = usePatientAuthStore((state) => state.user);
   const adminUser = useAdminAuthStore((state) => state.user);
@@ -47,8 +45,6 @@ const Header = () => {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  // Determine active user
   let activeUser = null;
   let role = null;
   let logoutFunc = null;
@@ -65,7 +61,6 @@ const Header = () => {
     role = adminUser?.isSuperAdmin ? 'Super Admin' : 'Admin';
     logoutFunc = adminLogout;
   }
-
   // console.log("admin ??:", adminUser?.fullName);
   const isSuperAdmin = role === 'Super Admin';
 
@@ -76,21 +71,15 @@ const Header = () => {
       router.refresh();
     }
   };
-
-
   const getDashboardLink = () => {
     if (role === 'Donor') return '/donor/dashboard';
     if (role === 'Patient') return '/patient/dashboard';
     if (role === 'Admin' || role === 'Super Admin') return '/admin/dashboard';
     return '/';
   };
-
-
-
   return (
     <header className="bg-bg/40 backdrop-blur-[40px] sticky top-0 z-[100] border-b border-white/5 transition-all duration-300 w-full">
       <div className="flex justify-between items-center px-6 lg:px-12 py-4 gap-4 lg:gap-8 w-full max-w-[2000px] mx-auto overflow-x-hidden">
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-4 group flex-shrink-0">
           <div className="relative">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-donor to-donor/60 flex items-center justify-center shadow-[0_0_20px_rgba(var(--donor-hex),0.3)] border border-white/10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 ease-out">
@@ -106,8 +95,6 @@ const Header = () => {
             </span>
           </div>
         </Link>
-
-        {/* Desktop Navigation */}
         <nav className="hidden lg:flex items-center lg:space-x-5 xl:space-x-8">
           <Link
             href="/#features"
@@ -139,22 +126,21 @@ const Header = () => {
           >
             Contact
           </Link>
-          <Link
-            href="/public-feedback"
-            className="text-highlight/80 hover:text-highlight transition-colors font-black text-[10px] uppercase tracking-widest px-3 py-1 bg-highlight/5 rounded-full border border-highlight/10"
-          >
-            System Feedback
-          </Link>
+          {isMounted && !activeUser && (
+            <Link
+              href="/public-feedback"
+              className="text-highlight/80 hover:text-highlight transition-colors font-black text-[10px] uppercase tracking-widest px-3 py-1 bg-highlight/5 rounded-full border border-highlight/10"
+            >
+              System Feedback
+            </Link>
+          )}
         </nav>
-
-        {/* Desktop Actions */}
         <div className="hidden lg:flex items-center space-x-4 flex-shrink-0">
           {isMounted && activeUser ? (
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button
-                  className={`rounded-full px-5 py-2.5 font-bold transition-all duration-300 border h-auto ${
-                    isSuperAdmin
+                  className={`rounded-full px-5 py-2.5 font-bold transition-all duration-300 border h-auto ${isSuperAdmin
                       ? 'bg-highlight/10 hover:bg-highlight/20 border-highlight/40 text-highlight shadow-[0_0_15px_rgba(var(--highlight-hex),0.15)]'
                       : 'bg-surface-3 hover:bg-surface-2 border-white/10 text-white'
                     }`}
@@ -235,8 +221,6 @@ const Header = () => {
             </>
           )}
         </div>
-
-        {/* Mobile Menu Button */}
         <div className="lg:hidden">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -247,15 +231,12 @@ const Header = () => {
         </div>
       </div>
 
-      <div 
-        className={`lg:hidden fixed inset-0 z-[9999] bg-[#030303] w-screen h-full min-h-[100dvh] flex flex-col transition-opacity duration-300 ${
-          isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'
-        }`}
+      <div
+        className={`lg:hidden fixed inset-0 z-[9999] bg-[#030303] w-screen h-full min-h-[100dvh] flex flex-col transition-opacity duration-300 ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'
+          }`}
       >
         <div className="flex flex-col h-full relative overflow-hidden">
-          {/* subtle glow for premium feel but solid background */}
           <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(var(--donor-hex),0.08),transparent_70%)] pointer-events-none"></div>
-          {/* Mobile Menu Header */}
           <div className="flex justify-between items-center px-6 py-4 border-b border-white/5">
             <Link href="/" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-4 group">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-donor to-donor/60 flex items-center justify-center border border-white/10">
@@ -312,14 +293,16 @@ const Header = () => {
               Contact
               <span className="w-2 h-2 rounded-full bg-white group-hover:bg-donor transition-colors"></span>
             </Link>
-            <Link
-              href="/public-feedback"
-              className="text-2xl font-black italic uppercase tracking-tighter text-highlight hover:text-white transition-colors py-4 border-b border-white/5 flex justify-between items-center group"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              System Feedback
-              <span className="w-2 h-2 rounded-full bg-highlight group-hover:bg-white transition-colors"></span>
-            </Link>
+            {isMounted && !activeUser && (
+              <Link
+                href="/public-feedback"
+                className="text-2xl font-black italic uppercase tracking-tighter text-highlight hover:text-white transition-colors py-4 border-b border-white/5 flex justify-between items-center group"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                System Feedback
+                <span className="w-2 h-2 rounded-full bg-highlight group-hover:bg-white transition-colors"></span>
+              </Link>
+            )}
 
             <div className="pt-12 pb-20">
               {isMounted && activeUser ? (

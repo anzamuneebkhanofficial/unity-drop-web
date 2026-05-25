@@ -18,11 +18,8 @@
   --border-active: rgba(255, 255, 255, 0.15);
 
   --portal-focus: var(--donor);
-
-  /* ✅ FIX 1: RGB triplets for rgba() usage — hex values can't go inside rgba().
-     These match --donor and --highlight exactly, just in rgb-channel format. */
   --portal-focus-rgb: var(--donor-hex);
-  /* defaults to donor theme */
+
 }
 
 .theme-donor {
@@ -65,8 +62,6 @@
     overflow-x: hidden;
     max-width: 100%;
 
-    /* ✅ FIX 2: Firefox scrollbar — ::-webkit-scrollbar is Chrome/Safari only.
-       Firefox uses these two properties on the scroll container itself. */
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.05) var(--bg);
   }
@@ -75,8 +70,6 @@
     box-sizing: border-box;
   }
 
-  /* Force clear placeholder overlap */
-  /* THE ULTIMATE GLOBAL AUTOFILL FIX */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
@@ -90,8 +83,6 @@
     caret-color: var(--text);
   }
 
-  /* ✅ FIX 3: Firefox autofill — Firefox 86+ supports the unprefixed :autofill.
-     Duplicated intentionally; each browser picks only the block it understands. */
   input:autofill,
   input:autofill:hover,
   input:autofill:focus,
@@ -107,7 +98,6 @@
     caret-color: var(--text);
   }
 
-  /* 💡 Global Scrollbar exactly matching dashboard style */
   ::-webkit-scrollbar {
     width: 5px;
   }
@@ -122,8 +112,6 @@
     transition: all 0.3s ease;
   }
 
-  /* ✅ FIX 4: rgba(var(--portal-focus), 0.5) was broken — hex can't go in rgba().
-     Switched to modern rgb(R G B / alpha) syntax using the new --portal-focus-rgb. */
   ::-webkit-scrollbar-thumb:hover {
     background: var(--portal-focus);
     box-shadow: 0 0 10px rgb(var(--portal-focus-rgb) / 0.5);
@@ -146,19 +134,14 @@
     letter-spacing: -0.025em;
   }
 
-  /* SPECIAL CASE: Fields with Left Icons */
   .input-with-icon {
     padding-left: 3.5rem !important;
-    /* 56px - plenty of space for icon at left-5 */
   }
 
-  /* Ensure padding-left 14 is absolutely enforced if used in JSX */
   .pl-14 {
     padding-left: 3.5rem !important;
   }
 
-  /* ✅ FIX 5: rgba(var(--portal-focus), 0.1) was silently broken in all browsers.
-     hex values are not valid inside rgba(). Using rgb() / alpha with the rgb triplet. */
   .inputField:focus {
     border-color: var(--portal-focus) !important;
     box-shadow: 0 0 0 1px rgb(var(--portal-focus-rgb) / 0.1);
@@ -166,6 +149,27 @@
 
   .selectField {
     @apply w-full bg-bg border border-white/5 text-text-dim p-4 rounded-xl focus:outline-none focus:border-donor/50 transition-all font-bold text-sm;
+  }
+
+  select {
+    background-color: var(--surface-2) !important;
+    color: var(--text) !important;
+    color-scheme: dark;
+  }
+
+  select option {
+    background-color: var(--surface-2) !important;
+    color: var(--text) !important;
+    padding: 0.5rem 1rem;
+    font-weight: 700;
+    font-size: 0.8125rem;
+  }
+
+  select option:checked,
+  select option:hover,
+  select option:focus {
+    background-color: var(--surface-3) !important;
+    color: var(--text) !important;
   }
 
   .formLabel {
@@ -182,7 +186,6 @@
 
   .formGroup {
     @apply space-y-3;
-    /* Increased spacing */
   }
 
   .universelBtn {
@@ -203,25 +206,95 @@
     transition: all 0.3s ease;
   }
 
-  /* ✅ FIX 6: Same hex-in-rgba bug fixed on custom-scrollbar hover too. */
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: var(--portal-focus);
     box-shadow: 0 0 10px rgb(var(--portal-focus-rgb) / 0.5);
   }
 
-  /* ✅ FIX 7: Firefox scrollbar for .custom-scrollbar containers.
-     scrollbar-width/color must sit on the scrolling element itself, not the thumb pseudo. */
+
   .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.05) transparent;
   }
 
   @keyframes blink-red {
-    0%, 100% { opacity: 1; transform: scale(1.2); box-shadow: 0 0 18px rgba(220, 38, 38, 1); }
-    50% { opacity: 0.35; transform: scale(0.8); box-shadow: 0 0 0px rgba(220, 38, 38, 0); }
+
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1.2);
+      box-shadow: 0 0 18px rgba(220, 38, 38, 1);
+    }
+
+    50% {
+      opacity: 0.35;
+      transform: scale(0.8);
+      box-shadow: 0 0 0px rgba(220, 38, 38, 0);
+    }
   }
 
   .animate-blink-red {
     animation: blink-red 1s infinite cubic-bezier(0.4, 0, 0.6, 1);
   }
+
+  .dashboard-input {
+    width: 100%;
+    background-color: #121212;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    font-size: 0.875rem;
+    outline: none;
+    transition: all 0.2s ease;
+    color: #e2e8f0;
+    appearance: none;
+  }
+
+  .dashboard-input::placeholder {
+    color: #64748b;
+  }
+
+  .dashboard-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .dashboard-input:focus {
+    border-color: rgba(var(--portal-focus-rgb), 0.5) !important;
+    box-shadow: 0 0 0 1px rgba(var(--portal-focus-rgb), 0.1);
+  }
+
+  .dashboard-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    margin-left: 0.25rem;
+    cursor: pointer;
+  }
+
+  .dashboard-select {
+    cursor: pointer;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.4s ease forwards;
+  opacity: 0;
 }

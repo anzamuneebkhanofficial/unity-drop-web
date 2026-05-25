@@ -9,21 +9,18 @@ import FAQSection from '../FAQSection';
 import BloodInfoSection from '../BloodInfoSection';
 import ContactSection from '../ContactSection';
 import Footer from '../Footer';
-import DesktopPreferenceNotice from '@/components/common/DesktopPreferenceNotice';
-
 export default function LandingPage() {
   return (
     <div className="bg-bg min-h-screen font-sans selection:bg-highlight selection:text-black flex flex-col items-center w-full overflow-x-hidden">
       <Header />
       <main className="w-full flex-1">
-        <DesktopPreferenceNotice />
         <HeroSection />
         <StatsBar />
         <FeaturesSection />
         <HowItWorksSection />
         <DonationProcessSection />
         <BloodInfoSection />
-        <FAQSection /> 
+        <FAQSection />
         <ContactSection />
       </main>
       <Footer />

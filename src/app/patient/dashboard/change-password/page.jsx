@@ -1,4 +1,4 @@
-/** @format */
+
 'use client';
 
 import React from 'react';
@@ -28,7 +28,7 @@ export default function PatientChangePassword() {
   const {
     handleSubmit,
     control,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(changeSchema),
     defaultValues: { password: '', password_confirmation: '' },
@@ -39,17 +39,17 @@ export default function PatientChangePassword() {
       data.password,
       data.password_confirmation
     );
-    if (result) router.replace('/patient/dashboard');
+    if (result) {
+      router.replace('/patient/dashboard');
+    }
   };
 
   return (
     <div className="w-full max-w-4xl mx-auto animate-fadeIn pb-12">
       <div className="bg-[#0c0c0c] border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl relative">
-        {/* Top color bar */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-highlight to-highlight/50 opacity-50"></div>
 
         <div className="p-8 md:p-12">
-          {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 pb-8 border-b border-white/5">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-[#121212] border border-white/5 flex items-center justify-center text-highlight">
@@ -61,23 +61,22 @@ export default function PatientChangePassword() {
               </div>
             </div>
             <button
-              onClick={handleSubmit(onSubmit)}
-              disabled={loading}
+              type="submit"
+              form="change-password-form"
+              disabled={isSubmitting || loading}
               className="flex items-center justify-center gap-2 bg-highlight hover:bg-highlight/80 text-black px-8 py-4 rounded-full font-bold uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(253,199,0,0.2)]"
             >
               <Save className="w-4 h-4" />
-              {loading ? 'Saving...' : 'Save Password'}
+              {isSubmitting || loading ? 'Saving...' : 'Save Password'}
             </button>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="max-w-2xl mx-auto space-y-8">
+          <form id="change-password-form" onSubmit={handleSubmit(onSubmit)} className="max-w-2xl mx-auto space-y-8">
             <div className="bg-[#121212] border border-white/5 rounded-2xl p-8 space-y-8">
               <div className="flex items-center gap-3 border-b border-white/5 pb-4">
                 <KeyRound className="w-5 h-5 text-gray-500" />
                 <h3 className="text-sm font-bold text-gray-300 uppercase tracking-widest">New Password</h3>
               </div>
-
-              {/* New Password */}
               <div className="space-y-2">
                 <Controller
                   name="password"
@@ -85,6 +84,9 @@ export default function PatientChangePassword() {
                   render={({ field }) => (
                     <PasswordField
                       field={field}
+                      id="password"
+                      autoComplete="new-password"
+                      disabled={loading}
                       label="New Password"
                       placeholder="Enter new password (min 6 characters)"
                       error={errors.password?.message}
@@ -92,8 +94,6 @@ export default function PatientChangePassword() {
                   )}
                 />
               </div>
-
-              {/* Confirm Password */}
               <div className="space-y-2">
                 <Controller
                   name="password_confirmation"
@@ -101,6 +101,9 @@ export default function PatientChangePassword() {
                   render={({ field }) => (
                     <PasswordField
                       field={field}
+                      id="password_confirmation"
+                      autoComplete="new-password"
+                      disabled={loading}
                       label="Confirm Password"
                       placeholder="Re-enter your new password"
                       error={errors.password_confirmation?.message}

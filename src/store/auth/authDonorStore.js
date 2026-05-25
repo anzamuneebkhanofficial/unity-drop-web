@@ -5,25 +5,18 @@ import { persist } from 'zustand/middleware';
 import Cookies from 'js-cookie';
 import apiWrapper from '@/lib/apiWrapper';
 import { performFullCleanup } from '@/lib/authHelpers';
-
-/*
- * 🧠 THE DONOR'S MEMORY BOX (useDonorAuthStore)
- * This is the place where the app saves everything for a blood donor.
- * It remembers who is logged in, their messages, and their settings.
- * It also keeps a copy in the browser so the info doesn't vanish when you refresh.
- */
 export const useDonorAuthStore = create(
   persist(
     (set, get) => ({
-      // These are the empty spots to hold the donor's information
       user: null,
       loading: false,
       error: null,
       success: null,
-
       totalPatients: 0,
       pendingRequests: 0,
       totalApproved: 0,
+      totalRejected: 0,
+      totalRequests: 0,
       DonorCaught: null,
       filters: {
         name: '',
@@ -34,23 +27,13 @@ export const useDonorAuthStore = create(
       totalPages: 0,
       currentPage: 1,
       requests: [],
-
       fetchingDonor: false,
       fetchingStats: false,
-
-      /* 🧹 CLEAN MESSAGES
-       * Clears any old error or success messages from the screen.
-       */
+      loadingRequests: false,
+      errorRequests: null,
+      successRequests: null,
       resetMessages: () => set({ error: null, success: null }),
-
-      /* 🔍 SET SEARCH SETTINGS
-       * Saves the name or blood type the donor is looking for.
-       */
       setFilters: (filters) => set({ filters }),
-
-      /* 📝 SIGN UP
-       * Creates a new account for a donor and checks for any mistakes.
-       */
       register: async (formData, captchaToken) => {
         set({ loading: true, error: null, success: null });
         try {
@@ -68,16 +51,12 @@ export const useDonorAuthStore = create(
             return null;
           }
         } catch (err) {
-          set({ error: err.response?.data?.error || 'Registration failed' });
+          set({ error: err.response?.data?.message || err.response?.data?.error || 'Registration failed' });
           return null;
         } finally {
           set({ loading: false });
         }
       },
-
-      /* ✅ CHECK EMAIL CODE
-       * Checks the secret code sent to the donor's email to make sure it is real.
-       */
       verifyEmail: async (email, otp, captchaToken) => {
         set({ loading: true, error: null, success: null });
         try {
@@ -95,22 +74,16 @@ export const useDonorAuthStore = create(
             return false;
           }
         } catch (err) {
-          set({ error: err.response?.data?.error || 'Verification failed' });
+          const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Verification failed';
+          set({ error: errorMessage });
           return false;
         } finally {
           set({ loading: false });
         }
       },
-
-      /* 🔑 LOG IN
-       * Checks email and password to let the donor into the app.
-       * It also wipes out any old data from the last person who used the app.
-       */
       login: async (email, password, captchaToken) => {
         set({ loading: true, error: null, success: null });
         try {
-          // 🔕 showToast: false — suppress premature success toast on the login page.
-          // The dashboard layout will fire the toast AFTER navigation completes.
           const res = await apiWrapper.post('/donor/donor-login', {
             email,
             password,
@@ -119,20 +92,15 @@ export const useDonorAuthStore = create(
           const data = res.data;
           if (data.status) {
             Cookies.set('role', data.user.role, { expires: 1 });
-
-            // ✅ Store login success message for dashboard to show after redirect
             if (typeof sessionStorage !== 'undefined') {
               sessionStorage.setItem('login_success', data.message || 'Donor logged in successfully');
             }
-
             set({
               user: data.user,
               DonorCaught: data.user,
               requests: [],
               patients: [],
-              feedbacks: []
             });
-
             return data.user;
           }
           else {
@@ -151,10 +119,6 @@ export const useDonorAuthStore = create(
           set({ loading: false });
         }
       },
-
-      /* 📧 FORGOT PASSWORD LINK
-       * Sends a link to the donor's email if they can't remember their password.
-       */
       requestResetLink: async (email, captchaToken) => {
         set({ loading: true, error: null, success: null });
         try {
@@ -169,17 +133,13 @@ export const useDonorAuthStore = create(
           return true;
         } catch (err) {
           set({
-            error: err.response?.data?.error,
+            error: err.response?.data?.message || err.response?.data?.error || 'Failed to request reset link',
           });
           return false;
         } finally {
           set({ loading: false });
         }
       },
-
-      /* 🔄 SET NEW PASSWORD
-       * Uses the email link to save a brand new password.
-       */
       resetPassword: async (
         id,
         token,
@@ -189,29 +149,24 @@ export const useDonorAuthStore = create(
       ) => {
         set({ loading: true, error: null, success: null });
         try {
-          const res = await apiWrapper.post(
+          await apiWrapper.post(
             `/donor/donor-password-reset/${id}/${token}`,
             { password, password_confirmation, captchaToken }
           );
           return true;
-
         } catch (err) {
           set({
-            error: err?.response?.data?.error,
+            error: err.response?.data?.message || err.response?.data?.error || 'Failed to reset password',
           });
           return false;
         } finally {
           set({ loading: false });
         }
       },
-
-      /* 🔐 CHANGE PASSWORD
-       * Lets a logged-in donor pick a new password.
-       */
       changePassword: async (password, password_confirmation) => {
         set({ loading: true, error: null, success: null });
         try {
-          const res = await apiWrapper.put('/donor/donor-change-password', {
+          await apiWrapper.put('/donor/donor-change-password', {
             password,
             password_confirmation,
           });
@@ -219,37 +174,30 @@ export const useDonorAuthStore = create(
 
         } catch (err) {
           set({
-            error: err.response?.data?.error,
+            error: err.response?.data?.message || err.response?.data?.error || 'Failed to change password',
           });
           return false;
         } finally {
           set({ loading: false });
         }
       },
-
-      /* 🚪 LOG OUT
-       * Signs the donor out and wipes their personal data from the browser.
-       */
       logout: async () => {
-        set({ loading: true, error: null, success: null });
-        try {
-          await apiWrapper.post('/donor/donor-logout', {});
+        performFullCleanup();
+        set({
+          user: null,
+          DonorCaught: null,
+          requests: [],
+          patients: [],
+          loading: false,
+          error: null,
+          success: null,
+        });
+        apiWrapper.post('/donor/donor-logout', {}).catch((err) => {
+          console.warn('Asynchronous donor logout API call failed:', err);
+        });
 
-          performFullCleanup();
-
-          set({ user: null, DonorCaught: null, requests: [], patients: [] });
-          return true;
-        } catch (err) {
-          set({ error: err.response?.data?.error || 'Logout failed' });
-          return false;
-        } finally {
-          set({ loading: false });
-        }
+        return true;
       },
-
-      /* 👤 GET PROFILE
-       * Gets the details of the donor who is currently logged in.
-       */
       getDonor: async () => {
         if (get().fetchingDonor || get().DonorCaught) return get().DonorCaught;
         set({ fetchingDonor: true, error: null });
@@ -262,34 +210,24 @@ export const useDonorAuthStore = create(
           });
           return res.data.user;
         } catch (err) {
-          set({ error: err.response?.data?.error, fetchingDonor: false });
+          set({ error: err.response?.data?.message || err.response?.data?.error || 'Failed to get donor profile', fetchingDonor: false });
           return null;
         }
       },
-
-      /* 🗑️ DELETE ACCOUNT
-       * Permanently removes the donor's account and all their data.
-       */
       deleteOurself: async () => {
         set({ loading: true, error: null, success: null });
         try {
-          const res = await apiWrapper.delete('/donor/donor-delete-ourself');
-
+          await apiWrapper.delete('/donor/donor-delete-ourself');
           performFullCleanup();
-
           set({ user: null, DonorCaught: null, requests: [], patients: [] });
           return true;
         } catch (err) {
-          set({ error: err.response?.data?.error });
+          set({ error: err.response?.data?.message || err.response?.data?.error || 'Failed to delete account' });
           return false;
         } finally {
           set({ loading: false });
         }
       },
-
-      /* ✏️ EDIT PROFILE
-       * Updates the donor's personal information like name or phone number.
-       */
       updateProfile: async (formData) => {
         set({ loading: true, error: null, success: null });
         try {
@@ -304,62 +242,45 @@ export const useDonorAuthStore = create(
           return true;
 
         } catch (err) {
-          set({ error: err.response?.data?.error });
+          set({ error: err.response?.data?.message || err.response?.data?.error || 'Failed to update profile' });
           return false;
         } finally {
           set({ loading: false });
         }
       },
-
-      /* 🔍 GET LIST OF PATIENTS
-       * Gets a list of people who need blood so the donor can see them.
-       */
       fetchPatients: async (page = 1, limit = 10) => {
         if (get().loading) return;
         set({ loading: true, error: null });
         try {
           const { name, bloodGroup, location } = get().filters;
-
-          const query = {};
+          const query = { page, limit };
           if (name) query.name = name;
           if (bloodGroup) query.bloodGroup = bloodGroup;
           if (location) query.location = location;
-
-          if (!name && !bloodGroup && !location) {
-            query.page = page;
-            query.limit = limit;
-          }
-
           const res = await apiWrapper.get(
-            '/donor/get-all-patients-for-donor',
+            '/donor/filter-all-patients',
             {
               params: query,
             }
           );
-
           const data = res.data;
-
           if (data.success) {
             set({
-              patients: data.patients,
-              totalPages: data.totalPages,
-              currentPage: data.currentPage,
+              patients: data.patients || [],
+              totalPages: data.pagination?.totalPages || data.totalPages || 0,
+              currentPage: data.pagination?.currentPage || data.currentPage || 1,
             });
           } else {
             set({ error: data.message });
           }
         } catch (err) {
           set({
-            error: err.response?.data?.error,
+            error: err.response?.data?.message || err.response?.data?.error || 'Failed to fetch patients',
           });
         } finally {
           set({ loading: false });
         }
       },
-
-      /* 🩺 GET ONE PATIENT
-       * Gets the full details of one specific patient.
-       */
       fetchPatientById: async (id) => {
         set({ loading: true, error: null });
         try {
@@ -374,17 +295,13 @@ export const useDonorAuthStore = create(
           }
         } catch (err) {
           set({
-            error: err.response?.data?.error,
+            error: err.response?.data?.message || err.response?.data?.error || 'Failed to fetch patient details',
           });
           return null;
         } finally {
           set({ loading: false });
         }
       },
-
-      /* 📥 GET BLOOD REQUESTS
-       * Gets a list of patients who have asked this donor for help.
-       */
       fetchRequests: async () => {
         if (get().loadingRequests) return;
         set({
@@ -392,12 +309,10 @@ export const useDonorAuthStore = create(
           errorRequests: null,
           successRequests: null,
         });
-
         try {
           const res = await apiWrapper.get(
             '/donor/get-all-patient-requests-for-donor'
           );
-
           if (res.data?.success) {
             set({
               requests: res.data.requests || [],
@@ -414,6 +329,7 @@ export const useDonorAuthStore = create(
           console.error('Fetch Requests Error:', err);
           set({
             errorRequests:
+              err.response?.data?.message ||
               err.response?.data?.error ||
               'Something went wrong while fetching requests.',
           });
@@ -421,30 +337,23 @@ export const useDonorAuthStore = create(
           set({ loadingRequests: false });
         }
       },
-
-      /* ✅❌ SAY YES OR NO
-       * Lets the donor Approve or Reject a patient's request for blood.
-       */
       updateRequestStatus: async (requestId, status) => {
         set({
           loadingRequests: true,
           errorRequests: null,
           successRequests: null,
         });
-
         try {
           const res = await apiWrapper.put(
             `/donor/update-patient-request-status-by-donor/${requestId}`,
             { status }
           );
-
           if (res.data?.success) {
             const updatedRequests = get().requests.map((req) =>
               req._id === requestId
                 ? { ...req, status: res.data.request?.status || status }
                 : req
             );
-
             set({
               requests: updatedRequests,
               successRequests:
@@ -463,6 +372,7 @@ export const useDonorAuthStore = create(
           console.error('Update Status Error:', err);
           set({
             errorRequests:
+              err.response?.data?.message ||
               err.response?.data?.error ||
               'Something went wrong while updating status.',
           });
@@ -470,9 +380,6 @@ export const useDonorAuthStore = create(
           set({ loadingRequests: false });
         }
       },
-      /* ⭐ SEND A REVIEW
-       * Lets the donor send feedback, a rating, and an emoji.
-       */
       addFeedback: async (message, rating, reaction) => {
         set({ loading: true, error: null, success: null });
         try {
@@ -481,7 +388,6 @@ export const useDonorAuthStore = create(
             rating,
             reaction,
           });
-
           if (res.data.success) {
             set({ success: res.data.message });
             return true;
@@ -491,18 +397,13 @@ export const useDonorAuthStore = create(
           }
         } catch (err) {
           set({
-            error: err.response?.data?.error || 'Something went wrong',
+            error: err.response?.data?.message || err.response?.data?.error || 'Something went wrong',
           });
           return false;
         } finally {
           set({ loading: false });
         }
       },
-
-
-      /* 📊 GET DASHBOARD NUMBERS
-       * Gets the quick numbers for the donor's main screen.
-       */
       fetchStats: async () => {
         if (get().fetchingStats) return;
         try {
@@ -513,19 +414,17 @@ export const useDonorAuthStore = create(
             totalPatients: data.totalPatients || 0,
             pendingRequests: data.pendingRequests || 0,
             totalApproved: data.totalApproved || 0,
+            totalRejected: data.totalRejected || 0,
+            totalRequests: data.totalRequests || 0,
             fetchingStats: false,
           });
         } catch (err) {
-          set({ fetchingStats: false, error: err.response?.data?.error });
+          set({ fetchingStats: false, error: err.response?.data?.message || err.response?.data?.error || 'Failed to fetch stats' });
         }
       },
 
     }),
     {
-      /* 📌 WHAT TO REMEMBER
-       * This part tells the browser to keep remembering the donor's ID 
-       * and name even if they close the window.
-       */
       name: 'donor-auth-storage',
       partialize: (state) => ({
         user: state.user

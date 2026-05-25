@@ -5,55 +5,54 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, User, ShieldAlert, Home, LogOut } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-
+import { useRouter, usePathname } from 'next/navigation';
+import NProgress from 'nprogress';
+import { setApiRouter } from '@/lib/apiWrapper';
 import SidebarProfile from './components/SidebarProfile';
-
-export default function Sidebar({ menu, user, basePath = '/', onLogout, isOpen = false, onClose = () => {} }) {
+export default function Sidebar({ menu, user, basePath = '/', onLogout, isOpen = false, onClose = () => { } }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [openIds, setOpenIds] = useState({});
   const [activeId, setActiveId] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
-
-  const hasUnreadAlert = () => false;
-
-  // 🚀 Register router with API wrapper for smooth SPA transitions
+  // Register router with API wrapper for smooth transitions
   useEffect(() => {
-    const { setApiRouter } = require('@/lib/apiWrapper');
     setApiRouter(router);
   }, [router]);
-
-  const toggleOpen = (id) =>
-    setOpenIds((prev) => ({ ...prev, [id]: !prev[id] }));
+  useEffect(() => {
+    const active = menu.find(
+      (item) =>
+        item.href === pathname ||
+        item.submenu?.some((sub) => pathname.startsWith(sub.href))
+    );
+    if (active) {
+      setActiveId(active.id);
+      // Auto-open parent submenu if navigating to a child route
+      if (active.submenu) {
+        setOpenIds((prev) => ({ ...prev, [active.id]: true }));
+      }
+    }
+  }, [pathname, menu]);
+  const toggleOpen = (id) => setOpenIds((prev) => ({ ...prev, [id]: !prev[id] }));
   const handleActive = (id) => setActiveId(id);
-
   return (
-    <aside className={`min-h-screen sticky top-0 w-[80px] sm:w-[90px] md:w-[260px] lg:w-[280px] flex flex-col bg-surface text-text-muted border-r border-white/5 shadow-[10px_0_30px_rgba(0,0,0,0.5)] z-[1000] lg:translate-x-0 transition-transform duration-300 ${
-      isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-    } fixed lg:sticky`}>
-      
-      {/* ========== MOBILE VERSION (md:hidden) - Icon Only ========== */}
+    <aside className={`min-h-screen sticky top-0 w-[80px] sm:w-[90px] md:w-[260px] lg:w-[280px] flex flex-col bg-surface text-text-muted border-r border-white/5 shadow-[10px_0_30px_rgba(0,0,0,0.5)] z-[1000] lg:translate-x-0 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      } fixed lg:sticky`}>
       <div className="md:hidden flex flex-col h-full w-full">
-        {/* Logo + Close Button Row */}
         <div className="flex-shrink-0 px-2 py-2 border-b border-white/5 flex items-center justify-between">
           <Link href={basePath}>
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-donor to-donor/60 flex items-center justify-center shadow-[0_0_15px_rgba(var(--donor-hex),0.3)] border border-white/10">
               <span className="text-white font-black text-lg tracking-tighter italic">U</span>
             </div>
           </Link>
-          <button 
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
-          >
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
-
-        {/* Profile - With Dropdown */}
         <div className="flex-shrink-0 px-2 py-2 border-b border-white/5">
-          <button 
+          <button
             onClick={() => setProfileOpen(!profileOpen)}
             className="w-full flex items-center justify-center p-2 rounded-lg hover:bg-white/5 transition-colors"
           >
@@ -61,8 +60,6 @@ export default function Sidebar({ menu, user, basePath = '/', onLogout, isOpen =
               <span className="text-donor font-black text-sm">{user?.name?.charAt(0) || 'U'}</span>
             </div>
           </button>
-
-          {/* Profile Dropdown Menu */}
           <AnimatePresence>
             {profileOpen && (
               <motion.div
@@ -89,7 +86,7 @@ export default function Sidebar({ menu, user, basePath = '/', onLogout, isOpen =
                     <Home className="w-3.5 h-3.5 text-donor" />
                     <span>Home</span>
                   </Link>
-                  <button 
+                  <button
                     onClick={onLogout}
                     className="w-full flex items-center gap-2 px-2 py-2 rounded text-[9px] font-bold text-donor hover:bg-donor/10 transition-all"
                   >
@@ -101,8 +98,6 @@ export default function Sidebar({ menu, user, basePath = '/', onLogout, isOpen =
             )}
           </AnimatePresence>
         </div>
-
-        {/* Navigation - Icons Only - NO TEXT LABELS */}
         <nav className="flex-1 overflow-y-auto py-2 px-1 custom-scrollbar">
           <div className="space-y-1">
             {menu.map((item) => (
@@ -113,26 +108,20 @@ export default function Sidebar({ menu, user, basePath = '/', onLogout, isOpen =
                     if (item.submenu) {
                       toggleOpen(item.id);
                     } else {
+                      NProgress.start();
                       router.push(item.href);
                     }
                   }}
-                  className={`w-full flex items-center justify-center p-2 rounded-lg transition-all duration-200 min-h-[44px] ${
-                    activeId === item.id
-                      ? 'bg-white/10 text-white'
-                      : 'text-text-muted hover:text-white hover:bg-white/5'
-                  }`}
+                  className={`w-full flex items-center justify-center p-2 rounded-lg transition-all duration-200 min-h-[44px] ${activeId === item.id
+                    ? 'bg-white/10 text-white'
+                    : 'text-text-muted hover:text-white hover:bg-white/5'
+                    }`}
                 >
-                  <div className="relative flex items-center justify-center">
-                    <span className={`${activeId === item.id ? 'text-donor' : 'text-text-dim'}`}>
-                      {item.icon}
-                    </span>
-                    {hasUnreadAlert(item.label) && (
-                      <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-surface"></span>
-                    )}
-                  </div>
+                  <span className={`${activeId === item.id ? 'text-donor' : 'text-text-dim'}`}>
+                    {item.icon}
+                  </span>
                 </button>
 
-                {/* Submenu */}
                 <AnimatePresence>
                   {item.submenu && openIds[item.id] && (
                     <motion.div
@@ -147,10 +136,6 @@ export default function Sidebar({ menu, user, basePath = '/', onLogout, isOpen =
                           <Link
                             key={sub.href}
                             href={sub.href}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Don't close sidebar
-                            }}
                             className="flex items-center justify-center px-1 py-1 rounded text-[7px] font-bold text-text-muted hover:text-donor hover:bg-white/5 transition-all min-h-[28px] text-center"
                           >
                             <span className="truncate max-w-[60px]">{sub.label.substring(0, 8)}</span>
@@ -164,10 +149,8 @@ export default function Sidebar({ menu, user, basePath = '/', onLogout, isOpen =
             ))}
           </div>
         </nav>
-
-        {/* Logout */}
         <div className="flex-shrink-0 px-2 py-2 border-t border-white/5">
-          <button 
+          <button
             onClick={onLogout}
             className="w-full flex items-center justify-center p-2 rounded-lg text-donor/70 hover:text-donor hover:bg-donor/10 transition-colors min-h-[44px]"
           >
@@ -176,22 +159,15 @@ export default function Sidebar({ menu, user, basePath = '/', onLogout, isOpen =
             </svg>
           </button>
         </div>
-
-        {/* Footer - Same as Desktop */}
         <div className="flex-shrink-0 p-4 border-t border-white/5 bg-surface">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-donor animate-pulse"></div>
             <span className="text-[8px] font-black text-text-dim uppercase tracking-wider">Unity Drop V1</span>
           </div>
-          <p className="text-[7px] text-text-muted mt-1 leading-relaxed">
-            The Future of Blood Donation
-          </p>
+          <p className="text-[7px] text-text-muted mt-1 leading-relaxed">The Future of Blood Donation</p>
         </div>
       </div>
-
-      {/* ========== DESKTOP VERSION (hidden md:flex) - Full Sidebar ========== */}
       <div className="hidden md:flex flex-col h-full">
-        {/* Logo Area */}
         <div className="relative overflow-hidden px-5 py-6 border-b border-white/5 flex-shrink-0 flex items-center justify-between">
           <Link href={basePath} className="flex items-center gap-3 group">
             <div className="relative">
@@ -208,13 +184,8 @@ export default function Sidebar({ menu, user, basePath = '/', onLogout, isOpen =
               </span>
             </div>
           </Link>
-
         </div>
-
-        {/* Profile Section */}
         <SidebarProfile user={user} basePath={basePath} onLogout={onLogout} />
-
-        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto mt-6 px-4 custom-scrollbar pb-6">
           <p className="text-[9px] font-black text-text-dim uppercase tracking-[0.3em] mb-4 px-2 flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-donor/80"></span> Main Application
@@ -228,6 +199,7 @@ export default function Sidebar({ menu, user, basePath = '/', onLogout, isOpen =
                     if (item.submenu) {
                       toggleOpen(item.id);
                     } else {
+                      NProgress.start();
                       router.push(item.href);
                     }
                   }}
@@ -238,12 +210,8 @@ export default function Sidebar({ menu, user, basePath = '/', onLogout, isOpen =
                     }`}
                 >
                   <div className="flex items-center gap-4">
-                    <span
-                      className={`transition-all duration-300 ${activeId === item.id
-                        ? 'text-donor scale-110'
-                        : 'text-text-dim group-hover/menu:text-white'
-                        }`}
-                    >
+                    <span className={`transition-all duration-300 ${activeId === item.id ? 'text-donor scale-110' : 'text-text-dim group-hover/menu:text-white'
+                      }`}>
                       {item.icon}
                     </span>
                     <span className="leading-none flex items-center gap-2">
@@ -252,9 +220,6 @@ export default function Sidebar({ menu, user, basePath = '/', onLogout, isOpen =
                         <span className="bg-red-600 text-[10px] text-white px-1.5 py-0.5 rounded-full animate-bounce">
                           {item.badge}
                         </span>
-                      )}
-                      {hasUnreadAlert(item.label) && (
-                        <span className="w-2 h-2 bg-red-600 rounded-full animate-blink-red border border-white/20"></span>
                       )}
                     </span>
                   </div>
@@ -282,12 +247,7 @@ export default function Sidebar({ menu, user, basePath = '/', onLogout, isOpen =
                           className="flex items-center gap-3 px-6 py-3 text-[11px] font-bold text-text-muted hover:text-donor transition-all relative group/sub hover:bg-white/[0.01] min-h-[44px]"
                         >
                           <span className="w-1.5 h-1.5 rounded-full bg-text-dim/40 group-hover/sub:bg-donor transition-colors duration-300 flex-shrink-0"></span>
-                          <span className="flex items-center gap-2">
-                            {sub.label}
-                            {hasUnreadAlert(sub.label) && (
-                              <span className="w-1.5 h-1.5 bg-red-600 rounded-full animate-blink-red border border-white/10"></span>
-                            )}
-                          </span>
+                          <span>{sub.label}</span>
                         </Link>
                       ))}
                     </motion.div>
@@ -297,16 +257,12 @@ export default function Sidebar({ menu, user, basePath = '/', onLogout, isOpen =
             ))}
           </div>
         </nav>
-
-        {/* Footer - Desktop */}
         <div className="flex-shrink-0 p-5 border-t border-white/5 bg-surface">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-donor animate-pulse"></div>
             <span className="text-[10px] font-black text-text-dim uppercase tracking-wider">Unity Drop V1</span>
           </div>
-          <p className="text-[9px] text-text-muted mt-1.5 leading-relaxed">
-            The Future of Blood Donation
-          </p>
+          <p className="text-[9px] text-text-muted mt-1.5 leading-relaxed">The Future of Blood Donation</p>
         </div>
       </div>
     </aside>

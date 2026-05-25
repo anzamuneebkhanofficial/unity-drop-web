@@ -1,19 +1,24 @@
-/** @format */
+
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Script from 'next/script';
 import { ShieldCheck, ShieldAlert, Loader2 } from 'lucide-react';
 
-/**
- * ReCAPTCHA v3 Implementation (Invisible)
- * includes status indicator to help debug "Please verify captcha" errors.
- */
+const POLL_INTERVAL_MS = 500;
+const TOKEN_REFRESH_MS = 90 * 1000;
+
 export default function CaptchaField({ onVerify }) {
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-  const [status, setStatus] = useState('loading'); // loading | success | error
+
+  const [status, setStatus] = useState('loading');
   const [errorMessage, setErrorMessage] = useState('');
+  // Keep track of the latest onVerify without triggering re-renders
+  const onVerifyRef = useRef(onVerify);
+  useEffect(() => {
+    onVerifyRef.current = onVerify;
+  }, [onVerify]);
 
   useEffect(() => {
     if (!siteKey) {
@@ -22,54 +27,49 @@ export default function CaptchaField({ onVerify }) {
       return;
     }
 
-    const generateToken = async () => {
-      try {
-        if (!window.grecaptcha) {
-          throw new Error('reCAPTCHA not loaded');
-        }
+    let isMounted = true;
+    let pollInterval;
+    let refreshTimeout;
 
-        window.grecaptcha.ready(async () => {
-          try {
-            const token = await window.grecaptcha.execute(siteKey, {
-              action: 'submit',
-            });
-            if (onVerify) {
-              onVerify(token);
-              setStatus('success');
-            }
-          } catch (err) {
+    const executeRecaptcha = () => {
+      if (!window.grecaptcha?.execute) return;
+
+      window.grecaptcha.ready(async () => {
+        try {
+          const token = await window.grecaptcha.execute(siteKey, {
+            action: 'submit',
+          });
+
+          if (isMounted) {
+            onVerifyRef.current?.(token);
+            setStatus('success');
+            // schedule the next refresh
+            refreshTimeout = setTimeout(executeRecaptcha, TOKEN_REFRESH_MS);
+          }
+        } catch (err) {
+          if (isMounted) {
             console.error('ReCAPTCHA Execution Error:', err);
             setStatus('error');
-            // Common error: Invalid key type (using v2 key for v3)
             setErrorMessage('Invalid Key Type? (Need v3 Key)');
           }
-        });
-      } catch (err) {
-        setStatus('error');
-        setErrorMessage(err.message);
-      }
+        }
+      });
     };
-
-    // Attempt to generate token when script creates global object
-    const checkInterval = setInterval(() => {
-      if (window.grecaptcha && window.grecaptcha.execute) {
-        generateToken();
-        clearInterval(checkInterval);
+    // until the script and execute method are fully loaded
+    pollInterval = setInterval(() => {
+      if (window.grecaptcha?.execute) {
+        clearInterval(pollInterval);
+        executeRecaptcha();
       }
-    }, 500);
+    }, POLL_INTERVAL_MS);
 
-    // Refresh token every 90 seconds
-    const refreshInterval = setInterval(() => {
-      if (status === 'success') {
-        generateToken();
-      }
-    }, 90 * 1000);
-
+    // Cleanup phase
     return () => {
-      clearInterval(checkInterval);
-      clearInterval(refreshInterval);
+      isMounted = false;
+      clearInterval(pollInterval);
+      clearTimeout(refreshTimeout);
     };
-  }, [siteKey, onVerify, status]);
+  }, [siteKey]); // ONLY siteKey determines when to rebuild the core loop
 
   return (
     <>

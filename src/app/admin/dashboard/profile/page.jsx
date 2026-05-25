@@ -1,7 +1,7 @@
-/** @format */
+
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminAuthStore } from '@/store/auth/authAdminStore';
 import {
@@ -9,17 +9,14 @@ import {
   Mail,
   Phone,
   Shield,
+  MapPin,
   CheckCircle2,
   XCircle,
-  Activity,
-  MapPin,
-  Trash2,
 } from 'lucide-react';
 import { ProfileSkeleton } from '@/components/ui/Skeletons';
 import DangerZone from '@/components/common/delete-account/DangerZone';
-import { toast } from 'sonner';
 
-// Moved outside the component so it is not recreated on every render
+// Udisplaying empty values
 const displayValue = (val) =>
   val === null || val === undefined || val === '' ? 'Not Provided' : val;
 
@@ -32,86 +29,80 @@ export default function AdminProfileView() {
   }, [getAdmin]);
 
   const handleDeleteAccount = async () => {
-    const success = await deleteOurself();
-    if (success) {
-      // toast.success('Account permanently deleted successfully.');
-      router.replace('/admin/login');
+    try {
+      const success = await deleteOurself();
+      if (success) {
+        router.replace('/admin/login');
+      }
+    } catch (error) {
+      console.error('Failed to delete admin account:', error);
     }
   };
 
-  // Wait until loading is done and user data is ready
   if (loading || !user) {
     return <ProfileSkeleton />;
   }
 
   return (
-    <>
-      <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto animate-fadeIn pb-10">
-        {/* Profile Header */}
-        <div className="bg-[#0f0f0f] border border-white/5 rounded-[2rem] p-8 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden group flex flex-col md:flex-row items-center gap-8">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-highlight opacity-50"></div>
-
-          {/* Avatar */}
-          <div className="relative">
-            <div className="w-32 h-32 rounded-full border-[4px] border-[#1a1a1a] bg-[#121212] flex items-center justify-center text-5xl font-black text-white shadow-2xl relative z-10 overflow-hidden">
-              {/* Safely handles missing fullName to avoid a crash */}
-              {(user.fullName?.charAt(0) || '?').toUpperCase()}
-              <div className="absolute inset-0 bg-white/5 group-hover:bg-transparent transition duration-300"></div>
-            </div>
-          </div>
-
-          {/* Name & Role */}
-          <div className="flex flex-col items-center md:items-start text-center md:text-left flex-1">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight uppercase mb-2">
-              {displayValue(user.fullName)}
-            </h1>
-            <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-widest text-blue-400">
-              <Shield className="w-4 h-4" />
-              <span>{displayValue(user.role)}</span>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Profile Details Card */}
-        <div className="bg-[#0c0c0c] border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative">
-          <div className="flex items-center gap-3 mb-8 pb-6 border-b border-white/5">
-            <User className="w-6 h-6 text-gray-400" />
-            <h2 className="text-xl font-bold text-white uppercase tracking-wider">Profile Details</h2>
-          </div>
-
-          <div className="flex flex-col divide-y divide-white/5">
-            <ProfileRow icon={User} label="Full Name" value={displayValue(user.fullName)} />
-            <ProfileRow icon={Mail} label="Email" value={displayValue(user.email)} />
-            <ProfileRow icon={Shield} label="Role" value={displayValue(user.role)} />
-            <ProfileRow icon={User} label="Gender" value={displayValue(user.gender)} />
-            <ProfileRow icon={Phone} label="Phone" value={displayValue(user.phone)} />
-            <ProfileRow icon={MapPin} label="Location" value={displayValue(user.location)} />
+    <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto animate-fadeIn pb-10">
+      <div className="bg-[#0f0f0f] border border-white/5 rounded-[2rem] p-8 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden group flex flex-col md:flex-row items-center gap-8">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-highlight opacity-50"></div>
+        <div className="relative">
+          <div className="w-32 h-32 rounded-full border-[4px] border-[#1a1a1a] bg-[#121212] flex items-center justify-center text-5xl font-black text-white shadow-2xl relative z-10 overflow-hidden">
+            {(user.fullName?.charAt(0) || '?').toUpperCase()}
+            <div className="absolute inset-0 bg-white/5 group-hover:bg-transparent transition duration-300"></div>
           </div>
         </div>
-
-        {/* Delete Account */}
-        <DangerZone
-          roleName="Admin"
-          onDelete={handleDeleteAccount}
-          description="Permanently delete your admin account. This will remove all your data, session, and access rights from the system. This action "
-        />
+        <div className="flex flex-col items-center md:items-start text-center md:text-left flex-1">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight uppercase mb-2">
+            {displayValue(user.fullName)}
+          </h1>
+          <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-widest text-blue-400">
+            <Shield className="w-4 h-4" />
+            <span>{displayValue(user.role)}</span>
+          </div>
+        </div>
       </div>
-    </>
+      <div className="bg-[#0c0c0c] border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative">
+        <div className="flex items-center gap-3 mb-8 pb-6 border-b border-white/5">
+          <User className="w-6 h-6 text-gray-400" />
+          <h2 className="text-xl font-bold text-white uppercase tracking-wider">Profile Details</h2>
+        </div>
+
+        <div className="flex flex-col divide-y divide-white/5">
+          <ProfileRow icon={User} label="Full Name" value={displayValue(user.fullName)} />
+          <ProfileRow icon={Mail} label="Email" value={displayValue(user.email)} />
+          <ProfileRow
+            icon={user?.emailVerified ? CheckCircle2 : XCircle}
+            label="Email Status"
+            value={user?.emailVerified ? 'Verified' : 'Unverified'}
+            valueClass={user?.emailVerified ? 'text-green-500 font-bold italic' : 'text-highlight font-bold italic'}
+          />
+          <ProfileRow icon={Shield} label="Role" value={displayValue(user.role)} />
+          <ProfileRow icon={User} label="Gender" value={displayValue(user.gender)} />
+          <ProfileRow icon={Phone} label="Phone Number" value={displayValue(user.phone)} />
+          <ProfileRow icon={MapPin} label="Location" value={displayValue(user.location)} />
+        </div>
+      </div>
+      <DangerZone
+        roleName="Admin"
+        onDelete={handleDeleteAccount}
+        description="Permanently delete your admin account. This will remove all your data, session, and access rights from the system. This action cannot be undone."
+      />
+    </div>
   );
 }
 
-// Reusable profile row component
 function ProfileRow({ icon: Icon, label, value, valueClass = 'text-white' }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-6 group hover:bg-white/[0.02] transition-colors rounded-xl px-4 -mx-4">
-      <div className="flex items-center gap-4 mb-2 sm:mb-0">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-6 group hover:bg-white/[0.02] transition-colors rounded-xl px-4 -mx-4 gap-4">
+      <div className="flex items-center gap-4 shrink-0 mb-2 sm:mb-0">
         <div className="w-10 h-10 rounded-full bg-[#121212] border border-white/5 flex items-center justify-center text-gray-400 group-hover:text-white transition-colors">
           <Icon className="w-5 h-5" />
         </div>
         <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{label}</span>
       </div>
-      <div className={`text-right text-base md:text-lg font-medium max-w-lg ${valueClass}`}>
+      <div className={`text-left sm:text-right text-base md:text-lg font-medium break-words whitespace-normal max-w-full sm:max-w-[60%] leading-relaxed ${valueClass}`}>
         {value}
       </div>
     </div>

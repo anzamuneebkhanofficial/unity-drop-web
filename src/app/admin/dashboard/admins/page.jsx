@@ -4,7 +4,6 @@
 import { useEffect, useState } from 'react';
 import { useAdminAuthStore } from '@/store/auth/authAdminStore';
 import Pagination from '@/components/common/Pagination';
-import { motion } from 'framer-motion';
 import {
   ShieldCheck,
   Trash2,
@@ -21,7 +20,11 @@ import {
   Clock,
   Shield,
   ShieldOff,
+  Search,
+  User,
+  Activity,
 } from 'lucide-react';
+
 import {
   Dialog,
   DialogContent,
@@ -30,8 +33,8 @@ import {
 import DeleteAccountModal from '@/components/common/delete-account/DeleteAccountModal';
 import { GenericSpinner as MiniSpinner } from '@/components/ui/Skeletons';
 import { toast } from 'sonner';
-
-// ─── Approval Badge ─────────────────────────────────────────────────────────
+import InfoDetailBox from '@/components/common/InfoDetailBox';
+import { fmtDate } from '@/lib/fmtDate';
 function ApprovalBadge({ status }) {
   if (status === 'approved') {
     return (
@@ -67,16 +70,16 @@ export default function AdminManagementList() {
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [tableLoading, setTableLoading] = useState(false);
-
-  // Modal states
+  const [name, setName] = useState('');
+  const [gender, setGender] = useState('');
+  const [approvalStatus, setApprovalStatus] = useState('');
+  const [role, setRole] = useState('');
   const [selectedAdmin, setSelectedAdmin] = useState(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-
-  // Approval action state
-  const [approvalLoading, setApprovalLoading] = useState(null); // admin id being acted on
+  const [approvalLoading, setApprovalLoading] = useState(null);
   const [privilegeLoading, setPrivilegeLoading] = useState(null);
 
   const isSuperAdmin = AdminCaught?.isSuperAdmin === true;
@@ -84,7 +87,13 @@ export default function AdminManagementList() {
   const fetchAdmins = async (page = 1) => {
     try {
       setTableLoading(true);
-      const data = await getAllAdmins(page, 10);
+      const filters = {};
+      if (name) filters.name = name;
+      if (gender) filters.gender = gender;
+      if (approvalStatus) filters.approvalStatus = approvalStatus;
+      if (role) filters.role = role;
+
+      const data = await getAllAdmins(page, 10, filters);
       setAdmins(data.admins || []);
       setPageCount(data.totalPages || 0);
       setCurrentPage(data.currentPage || 1);
@@ -93,9 +102,16 @@ export default function AdminManagementList() {
     }
   };
 
+  // Debounced Search Logic
   useEffect(() => {
-    fetchAdmins(1);
-  }, []);
+    const timer = setTimeout(() => {
+      if (name && name.length < 2 && name !== '') return;
+      fetchAdmins(1);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [name, gender, approvalStatus, role]);
+
 
   const openDeleteModal = (admin) => {
     if (admin._id === AdminCaught?._id) return;
@@ -116,14 +132,12 @@ export default function AdminManagementList() {
     }
   };
 
-  // ─── Approve / Reject ──────────────────────────────────────────────────────
   const handleApproval = async (adminId, status) => {
     setApprovalLoading(adminId);
     try {
       const ok = await updateAdminApproval(adminId, status);
       if (ok) {
         toast.success(status === 'approved' ? 'Admin approved!' : 'Admin rejected and removed.');
-        // Close view modal if open for this admin
         if (selectedAdmin?._id === adminId) {
           setIsViewOpen(false);
           setSelectedAdmin(null);
@@ -135,7 +149,6 @@ export default function AdminManagementList() {
     }
   };
 
-  // ─── Toggle Delete Privilege ───────────────────────────────────────────────
   const handlePrivilege = async (adminId, currentCanDelete) => {
     setPrivilegeLoading(adminId);
     try {
@@ -143,7 +156,6 @@ export default function AdminManagementList() {
       const ok = await updateAdminPrivileges(adminId, newVal);
       if (ok) {
         toast.success(newVal ? 'Delete privilege granted!' : 'Delete privilege removed.');
-        // Update locally without full refetch for snappiness
         setAdmins((prev) =>
           prev.map((a) => (a._id === adminId ? { ...a, canDelete: newVal } : a))
         );
@@ -159,7 +171,6 @@ export default function AdminManagementList() {
   return (
     <>
       <div className="p-4 sm:p-8 space-y-8 animate-in fade-in duration-700">
-        {/* HEADER */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-surface border border-highlight/20 p-8 rounded-xl relative overflow-hidden shadow-[0_20px_50px_rgba(var(--highlight-hex),0.1)]">
           <div className="absolute inset-0 bg-gradient-to-br from-highlight/5 to-transparent" />
           <div className="space-y-2 relative z-10">
@@ -182,8 +193,63 @@ export default function AdminManagementList() {
             </div>
           </div>
         </div>
-
-        {/* LEGEND (Super Admin only) */}
+        <section className="bg-[#0f0f0f]/60 backdrop-blur-xl border border-white/10 p-8 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <ModernInput
+              label="Search by Name"
+              placeholder="Type admin name..."
+              value={name}
+              onChange={setName}
+              icon={Search}
+            />
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-white/80 tracking-[0.2em] ml-1">Role</label>
+              <div className="relative group">
+                <select
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-5 text-sm focus:outline-none focus:border-highlight/50 transition-all text-white appearance-none cursor-pointer"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                >
+                  <option value="">All Roles</option>
+                  <option value="superadmin">Super Admin</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <ShieldCheck className="absolute right-4 top-1/2 -translate-y-1/2 text-highlight w-4 h-4 pointer-events-none" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-white/80 tracking-[0.2em] ml-1">Approval Status</label>
+              <div className="relative group">
+                <select
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-5 text-sm focus:outline-none focus:border-highlight/50 transition-all text-white appearance-none cursor-pointer"
+                  value={approvalStatus}
+                  onChange={(e) => setApprovalStatus(e.target.value)}
+                >
+                  <option value="">All Statuses</option>
+                  <option value="approved">Approved</option>
+                  <option value="pending">Pending</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+                <Clock className="absolute right-4 top-1/2 -translate-y-1/2 text-highlight w-4 h-4 pointer-events-none" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-white/80 tracking-[0.2em] ml-1">Gender</label>
+              <div className="relative group">
+                <select
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-5 text-sm focus:outline-none focus:border-highlight/50 transition-all text-white appearance-none cursor-pointer"
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                >
+                  <option value="">All Genders</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+                <User className="absolute right-4 top-1/2 -translate-y-1/2 text-highlight w-4 h-4 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+        </section>
         {isSuperAdmin && (
           <div className="flex flex-wrap items-center gap-4 px-2 text-[10px] font-black uppercase tracking-widest text-text-dim">
             <span className="text-white">Approval Controls:</span>
@@ -194,8 +260,6 @@ export default function AdminManagementList() {
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400"><ShieldCheck className="w-3 h-3" /> View + Delete</span>
           </div>
         )}
-
-        {/* ADMINS TABLE */}
         <div className="relative bg-surface border border-white/5 rounded-xl overflow-hidden shadow-2xl">
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
@@ -203,6 +267,7 @@ export default function AdminManagementList() {
                 <tr className="border-b border-white/5 bg-white/[0.02]">
                   <th className="px-6 py-6 text-[10px] font-black text-text-dim uppercase tracking-[0.3em]">Name</th>
                   <th className="px-6 py-6 text-[10px] font-black text-text-dim uppercase tracking-[0.3em]">Role</th>
+                  <th className="px-6 py-6 text-[10px] font-black text-text-dim uppercase tracking-[0.3em]">Email Status</th>
                   <th className="px-6 py-6 text-[10px] font-black text-text-dim uppercase tracking-[0.3em]">Approval</th>
                   {isSuperAdmin && (
                     <th className="px-6 py-6 text-[10px] font-black text-text-dim uppercase tracking-[0.3em]">Privilege</th>
@@ -213,7 +278,7 @@ export default function AdminManagementList() {
               <tbody className="divide-y divide-white/[0.03]">
                 {tableLoading ? (
                   <tr>
-                    <td colSpan={isSuperAdmin ? 5 : 4} className="py-24 text-center">
+                    <td colSpan={isSuperAdmin ? 6 : 5} className="py-24 text-center">
                       <div className="flex flex-col items-center gap-4">
                         <MiniSpinner size={40} className="text-highlight" />
                         <p className="text-[10px] font-black text-text-dim uppercase tracking-widest animate-pulse">Loading admins...</p>
@@ -222,37 +287,39 @@ export default function AdminManagementList() {
                   </tr>
                 ) : admins.length > 0 ? (
                   admins.map((admin, idx) => (
-                    <motion.tr
+                    <tr
                       key={admin._id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className={`group hover:bg-white/[0.02] transition-colors ${admin._id === AdminCaught?._id ? 'bg-highlight/[0.02]' : ''}`}
+                      style={{ animationDelay: `${idx * 50}ms` }}
+                      className={`group hover:bg-white/[0.02] transition-colors animate-fade-up opacity-0 ${admin._id === AdminCaught?._id ? 'bg-highlight/[0.02]' : ''}`}
                     >
-                      {/* Name */}
-                      <td className="px-6 py-5">
+                      <td className="px-6 py-5 max-w-[240px]">
                         <div className="flex items-center gap-3">
-                          <div className={`h-10 w-10 rounded-xl bg-neutral-900 border ${admin.isSuperAdmin ? 'border-highlight' : 'border-white/5'} flex items-center justify-center font-black ${admin.isSuperAdmin ? 'text-highlight' : 'text-text-dim'} text-sm`}>
+                          <div className={`h-10 w-10 rounded-xl bg-neutral-900 border ${admin.isSuperAdmin ? 'border-highlight' : 'border-white/5'} flex items-center justify-center font-black ${admin.isSuperAdmin ? 'text-highlight' : 'text-text-dim'} text-sm shrink-0`}>
                             {admin.fullName.charAt(0)}
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-sm font-black text-white uppercase tracking-tight">{admin.fullName}</span>
-                              {admin._id === AdminCaught?._id && <span className="text-[8px] px-1.5 py-0.5 bg-highlight text-black rounded font-black uppercase">You</span>}
+                              <span className="text-sm font-black text-white uppercase tracking-tight break-words whitespace-normal">{admin.fullName}</span>
+                              {admin._id === AdminCaught?._id && <span className="text-[8px] px-1.5 py-0.5 bg-highlight text-black rounded font-black uppercase shrink-0">You</span>}
                             </div>
-                            <span className="text-[9px] text-text-dim lowercase tracking-tighter block">{admin.email}</span>
+                            <span className="text-[9px] text-text-dim lowercase tracking-tighter block break-all">{admin.email}</span>
                           </div>
                         </div>
                       </td>
-
-                      {/* Role */}
                       <td className="px-6 py-5">
                         <div className={`inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${admin.isSuperAdmin ? 'bg-highlight/10 border border-highlight/20 text-highlight' : 'bg-blue-500/10 border border-blue-500/20 text-blue-500'}`}>
                           {admin.isSuperAdmin ? 'Super Admin' : 'Admin'}
                         </div>
                       </td>
-
-                      {/* Approval Status */}
+                      <td className="px-6 py-5">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${admin.emailVerified ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
+                          {admin.emailVerified ? (
+                            <><CheckCircle className="w-3.5 h-3.5" /> Verified</>
+                          ) : (
+                            <><XCircle className="w-3.5 h-3.5" /> Unverified</>
+                          )}
+                        </span>
+                      </td>
                       <td className="px-6 py-5">
                         {admin.isSuperAdmin ? (
                           <span className="text-[9px] text-highlight font-black uppercase tracking-widest">Auto-Approved</span>
@@ -260,8 +327,6 @@ export default function AdminManagementList() {
                           <ApprovalBadge status={admin.approvalStatus || 'pending'} />
                         )}
                       </td>
-
-                      {/* Privilege (Super Admin view only) */}
                       {isSuperAdmin && (
                         <td className="px-6 py-5">
                           {admin.isSuperAdmin ? (
@@ -272,12 +337,10 @@ export default function AdminManagementList() {
                             <button
                               onClick={() => handlePrivilege(admin._id, admin.canDelete)}
                               disabled={privilegeLoading === admin._id}
-                              title={admin.canDelete ? 'Click to remove delete privilege' : 'Click to grant delete privilege'}
-                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all hover:opacity-80 ${
-                                admin.canDelete
+                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all hover:opacity-80 ${admin.canDelete
                                   ? 'bg-purple-500/10 border-purple-500/20 text-purple-400'
                                   : 'bg-blue-500/10 border-blue-500/20 text-blue-400'
-                              }`}
+                                }`}
                             >
                               {privilegeLoading === admin._id ? (
                                 <MiniSpinner size={12} />
@@ -290,11 +353,8 @@ export default function AdminManagementList() {
                           )}
                         </td>
                       )}
-
-                      {/* Actions */}
                       <td className="px-6 py-5">
                         <div className="flex items-center justify-end gap-2 flex-wrap">
-                          {/* VIEW */}
                           <button
                             onClick={() => { setSelectedAdmin(admin); setIsViewOpen(true); }}
                             className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 hover:bg-blue-500 hover:text-black transition-all"
@@ -302,8 +362,6 @@ export default function AdminManagementList() {
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-
-                          {/* APPROVE (Super Admin, pending admins only) */}
                           {isSuperAdmin && !admin.isSuperAdmin && admin.approvalStatus === 'pending' && (
                             <>
                               <button
@@ -324,8 +382,6 @@ export default function AdminManagementList() {
                               </button>
                             </>
                           )}
-
-                          {/* DELETE (hidden for self) */}
                           {admin._id !== AdminCaught?._id && (
                             <button
                               onClick={() => openDeleteModal(admin)}
@@ -337,11 +393,11 @@ export default function AdminManagementList() {
                           )}
                         </div>
                       </td>
-                    </motion.tr>
+                    </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={isSuperAdmin ? 5 : 4} className="py-24 text-center">
+                    <td colSpan={isSuperAdmin ? 6 : 5} className="py-24 text-center">
                       <div className="flex flex-col items-center gap-4 opacity-50">
                         <AlertCircle className="w-12 h-12 text-gray-700" />
                         <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em]">No admins found</p>
@@ -354,7 +410,6 @@ export default function AdminManagementList() {
           </div>
         </div>
 
-        {/* PAGINATION */}
         <Pagination
           pageCount={pageCount}
           currentPage={currentPage}
@@ -362,7 +417,6 @@ export default function AdminManagementList() {
         />
       </div>
 
-      {/* VIEW ADMIN PROFILE MODAL */}
       <Dialog
         open={isViewOpen}
         onOpenChange={(val) => {
@@ -372,7 +426,7 @@ export default function AdminManagementList() {
       >
         <DialogContent
           showCloseButton={false}
-          className="sm:max-w-3xl lg:max-w-[calc(100vw-320px)] xl:max-w-3xl lg:left-[calc(50%+140px)] bg-surface/95 backdrop-blur-2xl border border-white/10 rounded-xl shadow-[0_0_100px_rgba(0,0,0,1)] p-0 overflow-hidden outline-none border-none"
+          className="max-w-5xl bg-surface/95 backdrop-blur-2xl border border-white/10 rounded-[3rem] p-0 overflow-hidden outline-none"
         >
           <div className="relative max-h-[85vh] overflow-y-auto custom-scrollbar p-8 md:p-14">
             <DialogClose className="absolute right-6 top-6 md:right-8 md:top-8 p-3 bg-white/5 hover:bg-highlight hover:text-black rounded-2xl transition-all border border-white/10 z-50">
@@ -381,18 +435,17 @@ export default function AdminManagementList() {
 
             {selectedAdmin && (
               <div className="space-y-10">
-                {/* Header */}
                 <div className="flex items-center gap-6">
-                  <div className="relative">
-                    <div className={`h-24 w-24 rounded-xl bg-gradient-to-br ${selectedAdmin.isSuperAdmin ? 'from-yellow-600 to-yellow-900 border-highlight' : 'from-blue-600 to-blue-900 border-blue-500'} flex items-center justify-center shadow-2xl border-2`}>
+                  <div className="relative flex-shrink-0">
+                    <div className={`h-24 w-24 rounded-[2rem] bg-gradient-to-br ${selectedAdmin.isSuperAdmin ? 'from-yellow-500 to-yellow-800' : 'from-blue-600 to-blue-900'} flex items-center justify-center shadow-2xl`}>
                       <ShieldCheck className="w-10 h-10 text-white" />
                     </div>
-                    <div className={`absolute -bottom-2 -right-2 h-8 w-8 ${selectedAdmin.isSuperAdmin ? 'bg-highlight' : 'bg-blue-500'} border-4 border-bg rounded-full shadow-lg`} />
+                    <div className={`absolute -bottom-2 -right-2 h-7 w-7 ${selectedAdmin.isSuperAdmin ? 'bg-highlight' : 'bg-blue-500'} border-4 border-bg rounded-full shadow-lg`} />
                   </div>
                   <div className="space-y-1">
                     <h2 className="text-3xl font-black text-white uppercase tracking-tighter">{selectedAdmin?.fullName}</h2>
-                    <p className="text-gray-400 font-black text-xs uppercase tracking-[0.2em] flex items-center gap-2">
-                      <Lock className={`w-4 h-4 ${selectedAdmin?.isSuperAdmin ? 'text-highlight' : 'text-blue-500'}`} />
+                    <p className={`font-black text-xs uppercase tracking-[0.2em] flex items-center gap-2 ${selectedAdmin?.isSuperAdmin ? 'text-highlight' : 'text-blue-400'}`}>
+                      <Lock className="w-3.5 h-3.5" />
                       {selectedAdmin?.isSuperAdmin ? 'Super Admin' : 'Admin'}
                     </p>
                     {!selectedAdmin.isSuperAdmin && (
@@ -403,20 +456,24 @@ export default function AdminManagementList() {
                   </div>
                 </div>
 
-                {/* Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-10 bg-white/[0.02] border border-white/5 rounded-xl">
-                  <DetailBox icon={Mail} label="Email" value={selectedAdmin?.email} />
-                  <DetailBox icon={Phone} label="Phone" value={selectedAdmin?.phone} />
-                  <DetailBox icon={MapPin} label="Location" value={selectedAdmin?.location || 'Not set'} />
-                  <DetailBox icon={Calendar} label="Joined On" value={selectedAdmin?.createdAt ? new Date(selectedAdmin.createdAt).toLocaleDateString() : '—'} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-10 bg-white/[0.02] border border-white/5 rounded-[2rem]">
+                  <InfoDetailBox icon={Mail} label="Email" value={selectedAdmin?.email} />
+                  <InfoDetailBox
+                    icon={selectedAdmin?.emailVerified ? CheckCircle : XCircle}
+                    label="Email Status"
+                    value={selectedAdmin?.emailVerified ? 'Verified' : 'Unverified'}
+                    color={selectedAdmin?.emailVerified ? 'text-green-500 font-black italic' : 'text-highlight font-black italic'}
+                  />
+                  <InfoDetailBox icon={Phone} label="Phone" value={selectedAdmin?.phone} />
+                  <InfoDetailBox icon={MapPin} label="Location" value={selectedAdmin?.location} />
+                  <InfoDetailBox icon={User} label="Gender" value={selectedAdmin?.gender} />
+                  <InfoDetailBox icon={Calendar} label="Joined On" value={fmtDate(selectedAdmin?.createdAt)} />
+                  <InfoDetailBox icon={Activity} label="Last Updated" value={fmtDate(selectedAdmin?.updatedAt)} />
                 </div>
 
-                {/* Super Admin Controls */}
                 {isSuperAdmin && !selectedAdmin.isSuperAdmin && (
                   <div className="p-6 bg-white/[0.02] border border-white/5 rounded-xl space-y-4">
                     <p className="text-[10px] font-black text-text-dim uppercase tracking-widest">Super Admin Controls</p>
-
-                    {/* Approval controls */}
                     {selectedAdmin.approvalStatus === 'pending' && (
                       <div className="flex flex-wrap gap-3">
                         <button
@@ -438,18 +495,16 @@ export default function AdminManagementList() {
                       </div>
                     )}
 
-                    {/* Privilege controls */}
                     {selectedAdmin.approvalStatus === 'approved' && (
                       <div>
                         <p className="text-[10px] text-text-dim font-black uppercase tracking-widest mb-2">Delete Privilege</p>
                         <button
                           onClick={() => handlePrivilege(selectedAdmin._id, selectedAdmin.canDelete)}
                           disabled={privilegeLoading === selectedAdmin._id}
-                          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 ${
-                            selectedAdmin.canDelete
+                          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 ${selectedAdmin.canDelete
                               ? 'bg-purple-500/20 border border-purple-500/30 text-purple-300 hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-300'
                               : 'bg-blue-500/20 border border-blue-500/30 text-blue-300 hover:bg-purple-500/20 hover:border-purple-500/30 hover:text-purple-300'
-                          }`}
+                            }`}
                         >
                           {privilegeLoading === selectedAdmin._id ? (
                             <MiniSpinner size={14} />
@@ -464,7 +519,6 @@ export default function AdminManagementList() {
                   </div>
                 )}
 
-                {/* Footer Actions */}
                 <div className="flex flex-col sm:flex-row justify-between gap-3">
                   {selectedAdmin?._id !== AdminCaught?._id ? (
                     <button
@@ -488,7 +542,6 @@ export default function AdminManagementList() {
         </DialogContent>
       </Dialog>
 
-      {/* DELETE CONFIRMATION MODAL */}
       <DeleteAccountModal
         isOpen={isDeleteModalOpen}
         onClose={() => !deleting && setIsDeleteModalOpen(false)}
@@ -501,17 +554,20 @@ export default function AdminManagementList() {
   );
 }
 
-// Helper component
-function DetailBox({ icon: Icon, label, value, color = 'text-gray-300', span = 1 }) {
-  const spanClass = span === 3 ? 'md:col-span-3' : span === 2 ? 'md:col-span-2' : '';
+
+function ModernInput({ label, placeholder, value, onChange, icon: Icon }) {
   return (
-    <div className={`space-y-2 ${spanClass} group`}>
-      <div className="flex items-center gap-2">
-        <Icon className="w-3.5 h-3.5 text-gray-600 group-hover:text-highlight transition-colors" />
-        <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">{label}</span>
-      </div>
-      <div className={`p-5 bg-surface-2/60 border border-white/5 rounded-lg font-black text-xs uppercase tracking-tight break-all whitespace-normal ${color} group-hover:bg-surface-2 transition-colors`}>
-        {value || 'Not available'}
+    <div className="space-y-2 flex-grow group">
+      <label className="text-[10px] font-black uppercase text-white/80 tracking-[0.2em] ml-1 group-focus-within:text-highlight transition-colors uppercase leading-none">{label}</label>
+      <div className="relative">
+        <input
+          type="text"
+          placeholder={placeholder}
+          className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-6 py-5 text-sm focus:outline-none focus:border-highlight/50 transition-all text-white placeholder:text-white/60 shadow-xl"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        {Icon && <Icon className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-700 w-4 h-4 pointer-events-none group-focus-within:text-highlight transition-colors" />}
       </div>
     </div>
   );

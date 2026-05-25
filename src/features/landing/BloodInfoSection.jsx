@@ -1,78 +1,213 @@
 /** @format */
-import Link from 'next/link';
-import { Droplet, Info, Users, ShieldCheck } from 'lucide-react';
+'use client';
+
+import { useState } from 'react';
+import { Droplet, ArrowRight, ArrowLeft, Info, HelpCircle } from 'lucide-react';
+const bloodTypes = [
+    {
+        type: "O+",
+        label: "Most Common",
+        rarity: "38% of population",
+        canDonateTo: ["O+", "A+", "B+", "AB+"],
+        canReceiveFrom: ["O-", "O+"],
+        note: "Most common blood type worldwide. In high demand by hospitals every day.",
+        badge: "common",
+    },
+    {
+        type: "O-",
+        label: "Universal Donor",
+        rarity: "Only 7% of population",
+        canDonateTo: ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"],
+        canReceiveFrom: ["O-"],
+        note: "Can donate to ALL 8 blood types. First to run out in emergencies. Most critical type to donate.",
+        badge: "universal-donor",
+    },
+    {
+        type: "A+",
+        label: "Very Common",
+        rarity: "~33% of population",
+        canDonateTo: ["A+", "AB+"],
+        canReceiveFrom: ["O-", "O+", "A-", "A+"],
+        note: "1 in 3 people have this type. Platelets from A+ are in high demand for chemotherapy patients.",
+        badge: "common",
+    },
+    {
+        type: "A-",
+        label: "Rare",
+        rarity: "~1 in 16 people (6%)",
+        canDonateTo: ["A-", "A+", "AB-", "AB+"],
+        canReceiveFrom: ["O-", "A-"],
+        note: "Can donate to all A and AB types regardless of positive or negative. Rare and valuable.",
+        badge: "rare",
+    },
+    {
+        type: "B+",
+        label: "Uncommon",
+        rarity: "~9% of population",
+        canDonateTo: ["B+", "AB+"],
+        canReceiveFrom: ["O-", "O+", "B-", "B+"],
+        note: "More prevalent in South Asian and African-American populations.",
+        badge: "common",
+    },
+    {
+        type: "B-",
+        label: "Very Rare",
+        rarity: "Less than 2% of population",
+        canDonateTo: ["B-", "B+", "AB-", "AB+"],
+        canReceiveFrom: ["O-", "B-"],
+        note: "One of the rarest types. Both B- and O- are the only sources for B- patients.",
+        badge: "rare",
+    },
+    {
+        type: "AB+",
+        label: "Universal Recipient",
+        rarity: "Less than 4% of population",
+        canDonateTo: ["AB+"],
+        canReceiveFrom: ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"],
+        note: "Can receive from ALL 8 blood types. But can only donate red cells to AB+ patients.",
+        badge: "universal-recipient",
+    },
+    {
+        type: "AB-",
+        label: "Rarest Type",
+        rarity: "Less than 1% of population",
+        canDonateTo: ["AB-", "AB+"],
+        canReceiveFrom: ["O-", "A-", "B-", "AB-"],
+        note: "Rarest of all 8 types. Also the universal plasma donor — AB plasma can go to any blood type.",
+        badge: "rare",
+    },
+];
 
 const BloodInfoSection = () => {
+    const [selectedType, setSelectedType] = useState('O-');
+
+    const activeData = bloodTypes.find(t => t.type === selectedType) || bloodTypes[0];
+
+    const getBadgeStyles = (badge) => {
+        switch (badge) {
+            case 'universal-donor':
+                return 'bg-green-500/10 text-green-400 border-green-500/25';
+            case 'universal-recipient':
+                return 'bg-highlight/10 text-highlight border-highlight/25';
+            case 'rare':
+                return 'bg-donor/10 text-donor border-donor/25';
+            default:
+                return 'bg-white/5 text-text-muted border-white/10';
+        }
+    };
+
     return (
         <section id="blood-info" className="py-32 bg-bg relative overflow-hidden">
-            {/* Background Effects */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_left,rgba(var(--donor-hex),0.03),transparent_50%)] pointer-events-none"></div>
 
-            <div className="container mx-auto px-6 relative z-10">
+            <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[800px] h-[500px] bg-[radial-gradient(circle_at_center,rgba(var(--donor-hex),0.02),transparent_70%)] blur-3xl pointer-events-none"></div>
+            <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[800px] h-[500px] bg-[radial-gradient(circle_at_center,rgba(var(--highlight-hex),0.02),transparent_70%)] blur-3xl pointer-events-none"></div>
+
+            <div className="container mx-auto px-6 relative z-10 w-full max-w-[2000px]">
                 <div className="text-center mb-24 max-w-3xl mx-auto space-y-4">
-                    <span className="text-donor font-black tracking-[0.4em] uppercase text-xs block opacity-80 italic">Knowledge Base</span>
+                    <span className="text-highlight font-black tracking-[0.4em] uppercase text-xs block opacity-80 italic">Compatibility Matrix</span>
                     <h2 className="text-4xl md:text-5xl font-black text-white italic tracking-tighter uppercase leading-none">
-                        Understanding <span className="text-highlight">Blood Types</span>
+                        Interactive <span className="text-donor">Blood Matrix</span>
                     </h2>
-                    <p className="text-lg text-text-muted mt-6 font-medium">
-                        Knowing your blood type is the first step in saving a life. Learn who you can help and who can help you during a medical emergency.
+                    <p className="text-lg text-text-muted mt-6 font-medium leading-relaxed">
+                        Knowing your compatibility rules is critical in save life emergencies. Select any blood type below to explore its live donation potential, rarity profile, and receiving channels.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16 items-center">
-                    {/* Left: General Info Cards */}
-                    <div className="space-y-6">
-                        <div className="bg-surface/40 backdrop-blur-xl p-8 rounded-[2rem] border border-white/5 hover:border-donor/30 transition-all duration-500 shadow-2xl group">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="p-3 bg-donor/10 rounded-xl group-hover:bg-donor transition-colors">
-                                    <Droplet className="w-6 h-6 text-donor group-hover:text-white" />
-                                </div>
-                                <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Universal Donors & Recipients</h3>
-                            </div>
-                            <p className="text-text-muted leading-relaxed font-medium">
-                                People with <span className="text-white font-bold">O- (O Negative)</span> blood are universal donors, meaning their blood can be given to anyone. People with <span className="text-white font-bold">AB+ (AB Positive)</span> are universal recipients and can receive blood from any group.
-                            </p>
-                        </div>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-stretch max-w-[1400px] mx-auto">
 
-                        <div className="bg-surface/40 backdrop-blur-xl p-8 rounded-[2rem] border border-white/5 hover:border-highlight/30 transition-all duration-500 shadow-2xl group">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="p-3 bg-highlight/10 rounded-xl group-hover:bg-highlight transition-colors">
-                                    <ShieldCheck className="w-6 h-6 text-highlight group-hover:text-black" />
-                                </div>
-                                <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Rare Blood Types</h3>
-                            </div>
-                            <p className="text-text-muted leading-relaxed font-medium">
-                                Types like AB- and B- are among the rarest blood groups. If you have a rare blood type, your donation is exceptionally valuable as finding an exact match during emergencies is highly difficult.
-                            </p>
+                    <div className="lg:col-span-5 flex flex-col justify-between">
+                        <div className="grid grid-cols-4 gap-4 w-full">
+                            {bloodTypes.map((bt) => {
+                                const isActive = bt.type === selectedType;
+                                return (
+                                    <button
+                                        key={bt.type}
+                                        onClick={() => setSelectedType(bt.type)}
+                                        className={`relative group rounded-2xl p-6 border transition-all duration-300 flex flex-col items-center justify-center gap-2 aspect-square cursor-pointer active:scale-95 ${isActive
+                                            ? 'bg-donor border-donor shadow-[0_0_30px_rgba(var(--donor-hex),0.3)] text-white'
+                                            : 'bg-surface/40 hover:bg-surface border-white/5 hover:border-donor/30 text-text-muted hover:text-white'
+                                            }`}
+                                    >
+                                        <span className="text-3xl font-black italic tracking-tighter leading-none">{bt.type}</span>
+                                        <span className={`text-[8px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded border text-center ${isActive ? 'bg-white/10 border-white/20 text-white' : getBadgeStyles(bt.badge)
+                                            }`}>
+                                            {bt.type === 'O-' ? 'Donor' : bt.type === 'AB+' ? 'Recipient' : bt.badge}
+                                        </span>
+                                    </button>
+                                );
+                            })}
                         </div>
-
-                        <div className="bg-surface/40 backdrop-blur-xl p-8 rounded-[2rem] border border-white/5 hover:border-donor/30 transition-all duration-500 shadow-2xl group">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="p-3 bg-donor/10 rounded-xl group-hover:bg-donor transition-colors">
-                                    <Users className="w-6 h-6 text-donor group-hover:text-white" />
-                                </div>
-                                <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Who Can Donate?</h3>
-                            </div>
-                            <p className="text-text-muted leading-relaxed font-medium">
-                                Anyone aged 18-65, weighing at least 50kg, and in good health can donate blood. Men can donate safely every 3 months, and women every 4 months.
+                        <div className="mt-8 bg-surface/30 backdrop-blur-md rounded-3xl p-8 border border-white/5 space-y-4">
+                            <h4 className="text-xs font-black uppercase tracking-[0.3em] text-highlight flex items-center gap-2">
+                                <HelpCircle className="w-4 h-4" /> Quick Eligibility Rule
+                            </h4>
+                            <p className="text-xs text-text-dim leading-relaxed font-medium">
+                                Active donors must weigh at least 50kg, be between 18–65 years of age, and test clean of transmissible diseases. Whole blood donations can be completed safely every 8 weeks (56 days) to allow iron levels to safely recover.
                             </p>
                         </div>
                     </div>
 
-                    {/* Right: Compatibility Table Call to Action */}
-                    <div className="bg-gradient-to-br from-surface to-surface-2 p-1 relative rounded-[3rem] overflow-hidden shadow-2xl">
-                        <div className="absolute inset-0 bg-donor/10 blur-3xl rounded-full mix-blend-screen mix-blend-overlay"></div>
-                        <div className="bg-bg/90 backdrop-blur-3xl rounded-[2.9rem] p-10 md:p-14 relative z-10 flex flex-col items-center text-center h-full justify-center">
-                            <div className="w-20 h-20 bg-highlight/10 rounded-2xl flex items-center justify-center mb-8 border border-highlight/20 shadow-[0_0_30px_rgba(var(--highlight-hex),0.2)]">
-                                <Info className="w-10 h-10 text-highlight" />
+                    <div className="lg:col-span-7 bg-surface/40 backdrop-blur-2xl rounded-[2.5rem] border border-white/5 p-8 md:p-12 relative flex flex-col justify-between overflow-hidden shadow-2xl">
+                        <div className="absolute -top-32 -right-32 w-96 h-96 bg-donor/5 rounded-full blur-3xl pointer-events-none"></div>
+
+                        <div className="space-y-8 relative z-10">
+
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-white/5">
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-6xl font-black text-white italic tracking-tighter leading-none">{activeData.type}</span>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest border ${getBadgeStyles(activeData.badge)}`}>
+                                            {activeData.label}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm font-black uppercase tracking-widest text-text-dim">
+                                        Rarity: <span className="text-white italic">{activeData.rarity}</span>
+                                    </p>
+                                </div>
+                                <div className="w-16 h-16 rounded-2xl bg-donor/10 flex items-center justify-center border border-donor/20 shadow-inner">
+                                    <Droplet className="w-8 h-8 text-donor animate-pulse" />
+                                </div>
                             </div>
-                            <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-4">Full Compatibility Guide</h3>
-                            <p className="text-text-muted leading-relaxed font-medium mb-10 max-w-sm">
-                                Not sure who you can receive blood from or give blood to? View our comprehensive guidelines and make sure you have the right information before an emergency strikes.
-                            </p>
-                            <Link href="/guidelines" className="w-full sm:w-auto bg-highlight text-black font-black uppercase tracking-[0.2em] py-5 px-10 rounded-xl text-sm transition-all transform hover:scale-105 shadow-[0_10px_40px_rgba(var(--highlight-hex),0.3)] hover:bg-highlight/90 active:scale-95 flex items-center justify-center gap-3">
-                                Read Full Guidelines
-                            </Link>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                                <div className="space-y-4">
+                                    <h4 className="text-xs font-black uppercase tracking-[0.2em] text-highlight flex items-center gap-2">
+                                        <ArrowRight className="w-4 h-4 text-highlight" /> Can Donate To
+                                    </h4>
+                                    <div className="flex flex-wrap gap-2.5">
+                                        {activeData.canDonateTo.map((t) => (
+                                            <span
+                                                key={t}
+                                                className="px-4 py-2 bg-donor/5 hover:bg-donor/10 border border-donor/10 text-white font-bold rounded-xl text-sm transition-colors cursor-default"
+                                            >
+                                                {t}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <h4 className="text-xs font-black uppercase tracking-[0.2em] text-highlight flex items-center gap-2">
+                                        <ArrowLeft className="w-4 h-4 text-highlight" /> Can Receive From
+                                    </h4>
+                                    <div className="flex flex-wrap gap-2.5">
+                                        {activeData.canReceiveFrom.map((t) => (
+                                            <span
+                                                key={t}
+                                                className="px-4 py-2 bg-highlight/5 hover:bg-highlight/10 border border-highlight/10 text-white font-bold rounded-xl text-sm transition-colors cursor-default"
+                                            >
+                                                {t}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-bg/40 border border-white/5 rounded-2xl p-6 flex gap-4 items-start">
+                                <Info className="w-5 h-5 text-donor shrink-0 mt-0.5" />
+                                <div className="space-y-1">
+                                    <h5 className="text-xs font-black uppercase tracking-wider text-white">Clinical Profile Note</h5>
+                                    <p className="text-sm text-text-muted leading-relaxed font-medium">{activeData.note}</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

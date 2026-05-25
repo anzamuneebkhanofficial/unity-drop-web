@@ -5,39 +5,39 @@ const FeaturesSection = () => {
     const features = [
         {
             icon: <Clock className="w-10 h-10 text-highlight mb-4 group-hover:scale-110 transition-transform duration-300" />,
-            title: '< 1 Minute Response',
+            title: 'Controlled Match Flow',
             description:
-                'Unity Drop is very fast. It connects blood donors and patients in less than one minute.',
-        },
-        {
-            icon: <Search className="w-10 h-10 text-highlight mb-4 group-hover:scale-110 transition-transform duration-300" />,
-            title: 'Gemini AI Matching',
-            description:
-                "Our smart Google Gemini AI automatically finds the best and closest donors in your city. You don't have to wait or search manually.",
+                'Patients send emergency requests directly to compatible donors. The donor retains absolute control to accept or reject the matching request.',
         },
         {
             icon: <ShieldCheck className="w-10 h-10 text-highlight mb-4 group-hover:scale-110 transition-transform duration-300" />,
-            title: '100% True Security',
+            title: 'Data Privacy Shield',
             description:
-                'All accounts are safe because we use Email OTP verification. Donors only share their phone numbers when they choose to accept a request.',
+                'Critical details like contact phone numbers, exact locations, and hospital destinations remain strictly hidden until the donor accepts the request.',
         },
         {
             icon: <Heart className="w-10 h-10 text-highlight mb-4 group-hover:scale-110 transition-transform duration-300" />,
-            title: 'No Random Spam',
+            title: 'OTP Email Verification',
             description:
-                'To keep you safe from spam, our system automatically bans users who break rules or bother others.',
+                'Every new user registration requires dynamic email OTP validation, ensuring a high-integrity community with zero duplicate or fake profiles.',
         },
         {
             icon: <Users className="w-10 h-10 text-highlight mb-4 group-hover:scale-110 transition-transform duration-300" />,
-            title: 'Three-Tier Dashboards',
+            title: 'Role-Based Isolation',
             description:
-                'We offer different dashboards for patients, donors, and admins. It has advanced tools to track everything easily.',
+                'Strict three-tier system access privileges isolate patient, donor, and admin modules, securing all restricted data from unauthorized actions.',
         },
         {
             icon: <FileText className="w-10 h-10 text-highlight mb-4 group-hover:scale-110 transition-transform duration-300" />,
-            title: 'Works on All Devices',
+            title: 'Administrative Oversight',
             description:
-                'Our simple website works perfectly on all devices. Whether you use a mobile phone, tablet, or a large computer, it will always be fast and clean.',
+                'Super Admins possess full dashboard controls to assign operational roles, audit donor profiles, and safely delete accounts for complete moderating.',
+        },
+        {
+            icon: <Search className="w-10 h-10 text-highlight mb-4 group-hover:scale-110 transition-transform duration-300" />,
+            title: 'Filtered Directory Search',
+            description:
+                'Advanced search utilities let patients find compatible donors, and let administrators search, filter, and track all records by city, blood type, and status.',
         },
     ];
 

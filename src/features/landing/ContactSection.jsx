@@ -1,6 +1,5 @@
 /** @format */
-import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram, GraduationCap } from 'lucide-react';
-
+import { Mail, MessageCircle, MapPin, Facebook, Twitter, Linkedin, Instagram, HeartPulse } from 'lucide-react';
 const ContactSection = () => {
     return (
         <section id="contact" className="py-32 bg-surface relative break-words border-t border-white/5">
@@ -11,50 +10,55 @@ const ContactSection = () => {
                         Our <span className="text-highlight">Contact</span> Information
                     </h2>
                     <p className="text-lg text-text-muted mt-6 font-medium">
-                        Need help or have questions regarding Unity Drop? Read the information about the developer and get in touch with us at any time.
+                        Need help or have questions regarding Unity Drop? Reach out to our support team or browse our resources below. We are here to assist you 24/7.
                     </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24">
-                    {/* Contact Info Developer */}
                     <div className="space-y-12 h-full flex flex-col justify-center">
                         <div className="flex gap-6 items-start">
                             <div className="bg-donor/10 p-5 rounded-2xl flex-shrink-0">
-                                <GraduationCap className="w-8 h-8 text-donor" />
+                                <HeartPulse className="w-8 h-8 text-donor" />
                             </div>
                             <div>
-                                <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-2">Development Lead</h3>
+                                <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-2">Our Life-Saving Mission</h3>
                                 <p className="text-text-muted font-medium leading-relaxed mb-4">
-                                    Developed as a <span className="text-white">Final Year Design Project (FYDP)</span> under the supervision of <span className="text-white">Ms. Natasha Akram</span>.
+                                    Unity Drop is dedicated to bridging the critical gap between voluntary blood donors and patients in urgent need.
                                 </p>
                                 <div className="space-y-1">
-                                    <p className="font-bold text-white text-lg">Muhammad Anza Muneeb Khan (084598)</p>
-                                    <p className="text-text-muted text-sm font-medium">Bachelor of Science in Information Technology</p>
-                                    <p className="text-text-muted text-sm font-medium">Govt. M.A.O. Graduate College, Lahore</p>
+                                    <p className="font-bold text-white text-lg">Unity Drop platform</p>
+                                    <p className="text-text-muted text-sm font-medium">24/7 Real-Time Notifications & Smart Matching</p>
+                                    <p className="text-text-muted text-sm font-medium">100% Free, Secure & Confidential Channel</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="grid sm:grid-cols-2 gap-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                             <div className="flex flex-col gap-3 group">
                                 <div className="bg-surface-2 w-14 h-14 rounded-2xl border border-white/10 flex flex-col items-center justify-center transition-colors group-hover:bg-donor/10 group-hover:border-donor/30">
                                     <Mail className="w-6 h-6 text-text-muted group-hover:text-donor transition-colors" />
                                 </div>
-                                <h4 className="text-white font-black italic uppercase tracking-wider text-lg">Email Us</h4>
-                                <a href="mailto:support@unitydrop.com" className="text-text-muted hover:text-white transition-colors text-sm font-medium">anzamkhan396@gmail.com</a>
+                                <h4 className="text-white font-black italic uppercase tracking-wider text-base">Email Us</h4>
+                                <a href="mailto:support@unitydrop.com" className="text-text-muted hover:text-white transition-colors text-xs font-medium break-all">support@unitydrop.com</a>
+                            </div>
+
+                            <div className="flex flex-col gap-3 group">
+                                <div className="bg-surface-2 w-14 h-14 rounded-2xl border border-white/10 flex flex-col items-center justify-center transition-colors group-hover:bg-green-500/10 group-hover:border-green-500/30">
+                                    <MessageCircle className="w-6 h-6 text-text-muted group-hover:text-green-400 transition-colors" />
+                                </div>
+                                <h4 className="text-white font-black italic uppercase tracking-wider text-base">WhatsApp Support</h4>
+                                <a href="https://wa.me/923001234567" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-white transition-colors text-xs font-medium">+92 (300) 123-4567</a>
                             </div>
 
                             <div className="flex flex-col gap-3 group">
                                 <div className="bg-surface-2 w-14 h-14 rounded-2xl border border-white/10 flex flex-col items-center justify-center transition-colors group-hover:bg-highlight/10 group-hover:border-highlight/30">
                                     <MapPin className="w-6 h-6 text-text-muted group-hover:text-highlight transition-colors" />
                                 </div>
-                                <h4 className="text-white font-black italic uppercase tracking-wider text-lg">Visit Us</h4>
-                                <p className="text-text-muted text-sm font-medium">Lahore, Pakistan<br />Govt. M.A.O. Graduate College</p>
+                                <h4 className="text-white font-black italic uppercase tracking-wider text-base">Visit Us</h4>
+                                <p className="text-text-muted text-xs font-medium">Lahore, Pakistan</p>
                             </div>
                         </div>
                     </div>
-
-                    {/* Socials & Interactive Box */}
                     <div className="bg-bg p-10 md:p-14 rounded-[3rem] border border-white/5 relative overflow-hidden shadow-2xl flex flex-col justify-center">
                         <div className="absolute top-0 right-0 p-32 bg-[radial-gradient(circle_at_top_right,rgba(var(--highlight-hex),0.05),transparent)] rounded-full blur-3xl pointer-events-none"></div>
 

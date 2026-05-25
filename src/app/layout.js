@@ -63,11 +63,10 @@ export const viewport = {
   themeColor: '#fdc700',
 };
 
-
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
-      <body className="min-h-screen flex flex-col overflow-x-hidden max-w-full">
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <body className="min-h-screen flex flex-col overflow-x-hidden max-w-full antialiased">
         <GlobalProviders>
           <main className="w-full h-full flex-1">
             {children}

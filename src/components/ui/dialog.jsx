@@ -68,18 +68,6 @@ function DialogHeader({ className, ...props }) {
   );
 }
 
-function DialogFooter({ className, ...props }) {
-  return (
-    <div
-      className={cn(
-        'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
-        className
-      )}
-      {...props}
-    />
-  );
-}
-
 function DialogTitle({ className, ...props }) {
   return (
     <DialogPrimitive.Title
@@ -92,24 +80,11 @@ function DialogTitle({ className, ...props }) {
   );
 }
 
-function DialogDescription({ className, ...props }) {
-  return (
-    <DialogPrimitive.Description
-      className={cn('text-sm text-white/80', className)}
-      {...props}
-    />
-  );
-}
-
 export {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
-  DialogOverlay,
-  DialogPortal,
   DialogTitle,
   DialogTrigger,
 };

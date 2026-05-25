@@ -1,9 +1,7 @@
 /** @format */
 'use client';
-
 import React, { useState } from 'react';
 import { Eye, EyeOff, Lock } from 'lucide-react';
-
 export default function PasswordField({
     field,
     placeholder = 'Enter password',

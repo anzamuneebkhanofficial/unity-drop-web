@@ -1,11 +1,11 @@
-/** @format */
+
 'use client';
 
 import { useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import DeleteAccountModal from '@/components/common/delete-account/DeleteAccountModal';
 
-export default function DangerZone({ roleName, onDelete, description }) {
+export default function DangerZone({ roleName = 'User', onDelete, description }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -14,13 +14,13 @@ export default function DangerZone({ roleName, onDelete, description }) {
     try {
       await onDelete();
     } finally {
-      // In case the component is not unmounted immediately
       setDeleting(false);
       setShowDeleteModal(false);
     }
   };
 
-  const defaultDescription = `Permanently delete your ${roleName.toLowerCase()} account. This will remove all your data, session, and access rights from the system. This action `;
+  const safeRoleName = roleName || 'User';
+  const defaultDescription = `Permanently delete your ${safeRoleName.toLowerCase()} account. This will remove all your data, session, and access rights from the system. This action `;
 
   return (
     <>
@@ -42,7 +42,8 @@ export default function DangerZone({ roleName, onDelete, description }) {
             </div>
           </div>
           <button
-            id={`${roleName.toLowerCase()}-delete-account-btn`}
+            type="button"
+            id={`${safeRoleName.toLowerCase()}-delete-account-btn`}
             onClick={() => setShowDeleteModal(true)}
             className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-extrabold uppercase tracking-wider text-white bg-red-600/90 hover:bg-red-500 border border-red-500/30 hover:border-red-400/50 shadow-[0_4px_20px_rgba(239,68,68,0.2)] hover:shadow-[0_4px_30px_rgba(239,68,68,0.4)] transition-all duration-200 whitespace-nowrap"
           >
@@ -57,7 +58,7 @@ export default function DangerZone({ roleName, onDelete, description }) {
         onClose={() => !deleting && setShowDeleteModal(false)}
         onConfirm={handleDeleteCallback}
         loading={deleting}
-        roleName={roleName}
+        roleName={safeRoleName}
       />
     </>
   );

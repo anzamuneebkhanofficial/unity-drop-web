@@ -6,19 +6,19 @@ const HowItWorksSection = () => {
             id: 1,
             title: 'Sign Up',
             description:
-                'Register as a donor or a patient to get started on our network.',
+                'Create your verified account as a voluntary Donor or Patient in less than a minute.',
         },
         {
             id: 2,
-            title: 'Dashboard',
+            title: 'Access Dashboard',
             description:
-                'Log in to your dashboard to manage requests, check status, and talk to others.',
+                'Manage live matching requests, track compatibility, and update availability status in real-time.',
         },
         {
             id: 3,
             title: 'Find or Help',
             description:
-                'Send blood requests or respond to donors instantly through our platform.',
+                'Publish emergency requests or volunteer to donate, saving lives with immediate match coordination.',
         },
     ];
 
@@ -38,7 +38,6 @@ const HowItWorksSection = () => {
                 </div>
 
                 <div className="relative max-w-6xl mx-auto">
-                    {/* SVG Arrows for desktop */}
                     <div className="hidden lg:block absolute top-[40px] left-[15%] right-[15%] z-0">
                         <div className="flex justify-between items-center w-full">
                             <div className="flex-1 px-8">

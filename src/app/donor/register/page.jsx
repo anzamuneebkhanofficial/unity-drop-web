@@ -1,4 +1,4 @@
-/** @format */
+
 'use client';
 
 import CaptchaField from '@/components/common/CaptchaField';
@@ -9,19 +9,20 @@ import {
   PhoneIcon,
   UserIcon,
   MapPinIcon,
+  Loader2,
 } from 'lucide-react';
-import PasswordField from '@/components/common/PasswordField';
-import Link from 'next/link';
-import LocationPicker from '@/components/common/LocationPicker';
-import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as yup from 'yup';
-
-// ✅ Yup Validation Schema
+import PasswordField from '@/components/common/PasswordField';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 const registerSchema = yup.object().shape({
-  fullName: yup.string().required('Full name is required'),
+  fullName: yup.string()
+    .matches(/^[a-zA-Z\s]+$/, 'Full name must contain only alphabets and spaces')
+    .min(2, 'Full name must be at least 2 characters')
+    .required('Full name is required'),
   email: yup.string().email('Invalid email').required('Email is required'),
   password: yup
     .string()
@@ -37,22 +38,27 @@ const registerSchema = yup.object().shape({
   address: yup.string().required('Address is required'),
   phone: yup
     .string()
-    .matches(/^[0-9]{10,15}$/, 'Phone must be valid')
+    .matches(/^[0-9]{10,15}$/, 'Phone must be between 10 and 15 digits and contain only numbers')
     .required('Phone number is required'),
   availabilityStatus: yup.boolean(),
 });
 
 const DonorRegister = () => {
   const router = useRouter();
-  const { register, loading, error, success, resetMessages } =
-    useDonorAuthStore();
+  const { register: registerDonor, loading, resetMessages } = useDonorAuthStore();
+
   const [captchaToken, setCaptchaToken] = useState('');
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  // Clean up store messages on mount
+  useEffect(() => {
+    resetMessages();
+  }, [resetMessages]);
+
   const {
     handleSubmit,
     control,
-    reset,
-    setValue,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(registerSchema),
     defaultValues: {
@@ -66,8 +72,6 @@ const DonorRegister = () => {
       address: '',
       phone: '',
       availabilityStatus: false,
-      latitude: '',
-      longitude: '',
     },
   });
 
@@ -76,17 +80,19 @@ const DonorRegister = () => {
       toast.error('Verification pending or failed. Please refresh the page.');
       return;
     }
-    const result = await register(data, captchaToken);
+
+    const result = await registerDonor(data, captchaToken);
+
     if (result) {
+      setIsNavigating(true);
       router.replace('/donor/email-verify');
     }
   };
 
-
+  const isFormDisabled = isSubmitting || loading || isNavigating;
 
   return (
     <div className="flex min-h-screen bg-bg text-white overflow-hidden">
-      {/* Left Brand Panel - Narrower for register */}
       <div className="hidden lg:flex flex-col justify-center items-center w-2/5 relative overflow-hidden bg-surface">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--donor-hex),0.15),transparent_70%)] animate-pulse"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-white/5 rounded-full opacity-20 lg:block hidden"></div>
@@ -114,74 +120,86 @@ const DonorRegister = () => {
           </div>
         </div>
       </div>
-
-      {/* Right Form Panel - Wider for more fields */}
       <div className="flex flex-1 items-start justify-center p-4 sm:p-6 md:p-8 lg:p-10 overflow-y-auto min-h-screen">
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="bg-surface-2/40 backdrop-blur-3xl border border-white/10 p-6 sm:p-8 md:p-10 rounded-[2rem] shadow-[0_0_80px_rgba(0,0,0,0.7)] w-full max-w-2xl space-y-5 relative z-10 my-8 overflow-x-hidden"
         >
-          {/* Header */}
+          {isFormDisabled && (
+            <div className="absolute inset-0 rounded-[2rem] z-50 cursor-not-allowed" aria-hidden="true" />
+          )}
           <div className="space-y-1.5 text-center">
             <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Donor Registration</h2>
             <p className="text-text-dim text-[10px] font-black uppercase tracking-[0.3em]">Create Your Account</p>
           </div>
-
-          {/* Fields in 2-column grid for efficiency */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Full Name */}
+
             <div className="formGroup group">
-              <label className="formLabel">Full Name</label>
+              <label htmlFor="fullName" className="formLabel">Full Name</label>
               <div className="relative">
                 <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim group-focus-within:text-donor transition-colors" />
                 <Controller name="fullName" control={control} render={({ field }) => (
-                  <input {...field} placeholder="Enter Full Name" className="inputField pl-14" />
+                  <input
+                    {...field}
+                    id="fullName"
+                    type="text"
+                    autoComplete="name"
+                    disabled={isFormDisabled}
+                    placeholder="Enter Full Name"
+                    className="inputField pl-14"
+                  />
                 )} />
               </div>
               {errors.fullName && <p className="formError">{errors.fullName.message}</p>}
             </div>
-
-            {/* Email */}
             <div className="formGroup group">
-              <label className="formLabel">Email Address</label>
+              <label htmlFor="email" className="formLabel">Email Address</label>
               <div className="relative">
                 <MailIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim group-focus-within:text-donor transition-colors" />
                 <Controller name="email" control={control} render={({ field }) => (
-                  <input {...field} type="email" placeholder="Enter Email" className="inputField pl-14" />
+                  <input
+                    {...field}
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    disabled={isFormDisabled}
+                    placeholder="Enter Email"
+                    className="inputField pl-14"
+                  />
                 )} />
               </div>
               {errors.email && <p className="formError">{errors.email.message}</p>}
             </div>
-
-            {/* Password */}
             <div className="formGroup group">
               <Controller name="password" control={control} render={({ field }) => (
                 <PasswordField
                   field={field}
+                  id="password"
+                  autoComplete="new-password"
                   label="Password"
                   placeholder="Create Password"
                   error={errors.password?.message}
+                  disabled={isFormDisabled}
                 />
               )} />
             </div>
-
-            {/* Confirm Password */}
             <div className="formGroup group">
               <Controller name="password_confirmation" control={control} render={({ field }) => (
                 <PasswordField
                   field={field}
+                  id="password_confirmation"
+                  autoComplete="new-password"
                   label="Confirm Key"
                   placeholder="Repeat Password"
                   error={errors.password_confirmation?.message}
+                  disabled={isFormDisabled}
                 />
               )} />
             </div>
-
-            {/* Gender */}
             <div className="formGroup group">
-              <label className="formLabel">Gender</label>
+              <label htmlFor="gender" className="formLabel">Gender</label>
               <Controller name="gender" control={control} render={({ field }) => (
-                <select {...field} className="selectField">
+                <select {...field} id="gender" disabled={isFormDisabled} className="selectField">
                   <option value="">Select Gender</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
@@ -190,12 +208,10 @@ const DonorRegister = () => {
               )} />
               {errors.gender && <p className="formError">{errors.gender.message}</p>}
             </div>
-
-            {/* Blood Group */}
             <div className="formGroup group">
-              <label className="formLabel">Blood Group</label>
+              <label htmlFor="bloodGroup" className="formLabel">Blood Group</label>
               <Controller name="bloodGroup" control={control} render={({ field }) => (
-                <select {...field} className="selectField">
+                <select {...field} id="bloodGroup" disabled={isFormDisabled} className="selectField">
                   <option value="">Select Blood Group</option>
                   <option value="A+">A+</option>
                   <option value="A-">A-</option>
@@ -209,74 +225,90 @@ const DonorRegister = () => {
               )} />
               {errors.bloodGroup && <p className="formError">{errors.bloodGroup.message}</p>}
             </div>
-
-            {/* Phone */}
             <div className="formGroup group">
-              <label className="formLabel">Phone</label>
+              <label htmlFor="phone" className="formLabel">Phone</label>
               <div className="relative">
                 <PhoneIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim group-focus-within:text-donor transition-colors" />
                 <Controller name="phone" control={control} render={({ field }) => (
-                  <input {...field} placeholder="Phone Number" className="inputField pl-14" />
+                  <input
+                    {...field}
+                    id="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    disabled={isFormDisabled}
+                    placeholder="Phone Number"
+                    className="inputField pl-14"
+                  />
                 )} />
               </div>
               {errors.phone && <p className="formError">{errors.phone.message}</p>}
             </div>
-
-            {/* Location */}
             <div className="formGroup group">
-              <label className="formLabel">Location</label>
+              <label htmlFor="location" className="formLabel">Location</label>
               <div className="relative">
                 <MapPinIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim group-focus-within:text-donor transition-colors" />
                 <Controller name="location" control={control} render={({ field }) => (
-                  <input {...field} placeholder="City / Region" className="inputField pl-14" />
+                  <input
+                    {...field}
+                    id="location"
+                    disabled={isFormDisabled}
+                    placeholder="City / Region"
+                    className="inputField pl-14"
+                  />
                 )} />
               </div>
-              <LocationPicker
-                className="mt-1"
-                onLocationDetected={({ latitude, longitude, city, address }) => {
-                  setValue('latitude', latitude);
-                  setValue('longitude', longitude);
-                  if (city) setValue('location', city);
-                  if (address) setValue('address', address);
-                }}
-              />
               {errors.location && <p className="formError">{errors.location.message}</p>}
             </div>
           </div>
-
-          {/* Address - Full width */}
           <div className="formGroup group">
-            <label className="formLabel">Full Address</label>
+            <label htmlFor="address" className="formLabel">Full Address</label>
             <Controller name="address" control={control} render={({ field }) => (
-              <textarea {...field} rows={2} placeholder="Enter Full Address" className="inputField resize-none" />
+              <textarea
+                {...field}
+                id="address"
+                autoComplete="street-address"
+                rows={2}
+                disabled={isFormDisabled}
+                placeholder="Enter Full Address"
+                className="inputField resize-none"
+              />
             )} />
             {errors.address && <p className="formError">{errors.address.message}</p>}
           </div>
-
-          {/* Availability */}
-          <div className="flex items-center gap-3 px-1">
+          <label className={`flex items-center gap-3 px-1 w-fit ${isFormDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
             <Controller name="availabilityStatus" control={control} render={({ field }) => (
-              <input type="checkbox" {...field} checked={field.value} className="h-4 w-4 accent-donor rounded" />
+              <input
+                type="checkbox"
+                {...field}
+                disabled={isFormDisabled}
+                checked={field.value}
+                className="h-4 w-4 accent-donor rounded"
+              />
             )} />
             <span className="text-text-dim text-xs font-bold">Available for Donation</span>
-          </div>
+          </label>
 
           <CaptchaField onVerify={setCaptchaToken} />
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-donor hover:bg-donor/90 text-white font-black uppercase tracking-[0.2em] text-xs py-5 rounded-xl transition-all shadow-[0_10px_30px_rgba(var(--donor-hex),0.2)] active:scale-[0.98] disabled:opacity-50 min-h-[44px] flex items-center justify-center"
+            disabled={isFormDisabled}
+            className="w-full bg-donor hover:bg-donor/90 text-white font-black uppercase tracking-[0.2em] text-xs py-5 rounded-xl transition-all shadow-[0_10px_30px_rgba(var(--donor-hex),0.2)] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed min-h-[56px] flex items-center justify-center gap-3"
           >
-            {loading ? 'Registering Please Wait...' : 'Submit'}
+            {isFormDisabled ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Registering Please Wait...
+              </>
+            ) : (
+              'Submit'
+            )}
           </button>
-
-          {/* Footer Links */}
           <div className="space-y-4 pt-2">
             <div className="text-center">
               <p className="text-[10px] font-bold text-text-dim">
                 Already registered?{' '}
-                <Link href="/donor/login" className="text-donor hover:text-white transition-colors font-black uppercase tracking-wider">
+                <Link href="/donor/login" className="text-donor hover:text-white transition-colors font-black uppercase tracking-wider relative z-10">
                   Login Here
                 </Link>
               </p>
@@ -287,10 +319,10 @@ const DonorRegister = () => {
             <div className="flex flex-col sm:flex-row items-center gap-3">
               <p className="text-[9px] font-black text-text-dim uppercase tracking-[0.3em]">Register As</p>
               <div className="flex gap-3 w-full sm:w-auto">
-                <Link href="/patient/register" className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-white hover:bg-white/10 transition-all min-h-[44px] flex items-center justify-center">
+                <Link href="/patient/register" className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-white hover:bg-white/10 transition-all min-h-[44px] flex items-center justify-center relative z-10">
                   Patient
                 </Link>
-                <Link href="/admin/register" className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-white hover:bg-white/10 transition-all min-h-[44px] flex items-center justify-center">
+                <Link href="/admin/register" className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-white hover:bg-white/10 transition-all min-h-[44px] flex items-center justify-center relative z-10">
                   Admin
                 </Link>
               </div>

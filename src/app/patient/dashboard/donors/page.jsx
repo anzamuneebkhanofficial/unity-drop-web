@@ -1,9 +1,8 @@
-/** @format */
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import Pagination from '@/components/common/Pagination';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -14,66 +13,164 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { usePatientAuthStore } from '@/store/auth/authPatientStore';
 import { GenericSpinner as MiniSpinner } from '@/components/ui/Skeletons';
 import { Mail, MapPin, User, Activity, Droplets, Phone, ShieldAlert, X, ClipboardCheck, ShieldCheck, HeartPulse, Search } from 'lucide-react';
+import InfoDetailBox from '@/components/common/InfoDetailBox';
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 
+const requestSchema = yup.object().shape({
+  caseDescription: yup.string().required('Reason for blood is required'),
+  patientAge: yup.number()
+    .transform((value, originalValue) => originalValue === '' ? undefined : value)
+    .typeError('Patient age must be an integer')
+    .integer('Patient age must be an integer')
+    .min(1, 'Patient age must be between 1 and 120')
+    .max(120, 'Patient age must be between 1 and 120')
+    .required('Patient age is required'),
+  bottlesRequired: yup.number()
+    .transform((value, originalValue) => originalValue === '' ? undefined : value)
+    .typeError('Bottles required must be an integer')
+    .integer('Bottles required must be an integer')
+    .min(1, 'Bottles required must be between 1 and 20')
+    .max(20, 'Bottles required must be between 1 and 20')
+    .required('Bottles required is required'),
+  hospitalName: yup.string().required('Hospital name is required').min(2, 'Hospital name must be at least 2 characters'),
+  city: yup.string().required('City is required').min(2, 'City must be at least 2 characters'),
+  attendantName: yup.string()
+    .required('Attendant name is required')
+    .min(2, 'Attendant name must be at least 2 characters')
+    .matches(/^[a-zA-Z\s]+$/, 'Attendant name must contain only alphabets and spaces'),
+  attendantPhone: yup.string()
+    .required('Attendant phone is required')
+    .matches(/^[0-9]{10,15}$/, 'Attendant phone must contain between 10 and 15 digits only'),
+  pickAndDrop: yup.string().required('Pick & Drop choice is required'),
+  exchangePossibility: yup.string().required('Exchange choice is required'),
+  message: yup.string()
+    .required('Message is required')
+    .min(10, 'Message must be at least 10 characters long'),
+});
+function ModernInput({ id, label, type = "text", placeholder, value, onChange, icon: Icon = null, disabled = false }) {
+  return (
+    <div className="space-y-3 flex-grow">
+      <label htmlFor={id} className="text-[10px] font-black uppercase text-white/80 tracking-[0.2em] ml-1 cursor-pointer">{label}</label>
+      <div className="relative group">
+        {Icon && <Icon className="absolute left-6 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-white/20 group-focus-within:text-red-500 transition-all" />}
+        <input
+          id={id}
+          type={type}
+          placeholder={placeholder}
+          disabled={disabled}
+          className={`w-full bg-white/[0.04] border border-white/10 rounded-lg px-6 py-5 text-sm focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all text-white ${Icon ? 'pl-16' : ''} placeholder:text-white/60 shadow-xl shadow-black/20 ${disabled ? 'opacity-40 cursor-not-allowed grayscale' : ''}`}
+          value={value}
+          onChange={(e) => !disabled && onChange(e.target.value)}
+        />
+      </div>
+    </div>
+  );
+}
 
+function ModernRequestInput({ id, label, type = "text", placeholder, value, onChange, icon: Icon = null, disabled = false }) {
+  return (
+    <div className="space-y-3 flex-grow">
+      <label htmlFor={id} className="text-[10px] font-black uppercase text-white/80 tracking-[0.2em] ml-1 cursor-pointer">{label}</label>
+      <div className="relative group">
+        {Icon && <Icon className="absolute left-7 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-white/20 group-focus-within:text-red-500 transition-all z-10" />}
+        <input
+          id={id}
+          type={type}
+          placeholder={placeholder}
+          disabled={disabled}
+          className={`w-full bg-[#121212] border border-white/10 rounded-lg ${Icon ? 'pl-16' : 'px-8'} py-5 text-sm focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all text-white placeholder:text-white/60 shadow-2xl shadow-inner scrollbar-hide ${disabled ? 'opacity-40 cursor-not-allowed grayscale' : ''}`}
+          value={value}
+          onChange={(e) => !disabled && onChange(e.target.value)}
+        />
+      </div>
+    </div>
+  );
+}
 export default function PatientDonorsList() {
   const {
     donors,
     totalPages,
     currentPage,
+    totalResults,
     loading,
     fetchDonors,
     fetchDonorById,
     setFilters,
     filters,
     sendBloodRequest,
-    error,
-    success,
-    resetMessages,
-
   } = usePatientAuthStore();
-
-
 
   const [selectedDonor, setSelectedDonor] = useState(null);
   const [donorStatus, setDonorStatus] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [requestDetails, setRequestDetails] = useState({
-    message: '',
-    patientAge: '',
-    bottlesRequired: '',
-    hospitalName: '',
-    city: '',
-    pickAndDrop: 'No',
-    exchangePossibility: 'No',
-    caseDescription: '',
-    attendantName: '',
-    attendantPhone: '',
-  });
   const [viewLoading, setViewLoading] = useState(false);
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(requestSchema),
+    defaultValues: {
+      message: '',
+      patientAge: '',
+      bottlesRequired: '',
+      hospitalName: '',
+      city: '',
+      pickAndDrop: 'No',
+      exchangePossibility: 'No',
+      caseDescription: '',
+      attendantName: '',
+      attendantPhone: '',
+    },
+  });
+
+  const formMessage = watch('message');
+
+  const handleDialogChange = (isOpen) => {
+    setIsDialogOpen(isOpen);
+    if (!isOpen) {
+      reset({
+        message: '',
+        patientAge: '',
+        bottlesRequired: '',
+        hospitalName: '',
+        city: '',
+        pickAndDrop: 'No',
+        exchangePossibility: 'No',
+        caseDescription: '',
+        attendantName: '',
+        attendantPhone: '',
+      });
+      setSelectedDonor(null);
+    }
+  };
 
   const [name, setName] = useState(filters.name || '');
   const [bloodGroup, setBloodGroup] = useState(filters.bloodGroup || '');
   const [location, setLocation] = useState(filters.location || '');
   const [limit, setLimit] = useState(5);
 
+  // Fetch Mount
+  useEffect(() => {
+    fetchDonors(1, limit);
+  }, []);
   // Debounced Search Logic
   useEffect(() => {
     const timer = setTimeout(() => {
       if (name && name.length < 2 && name !== '') return;
+
       setFilters({ name, bloodGroup, location });
       fetchDonors(1, limit);
     }, 500);
-
     return () => clearTimeout(timer);
   }, [name, bloodGroup, location, limit, fetchDonors, setFilters]);
-
-
-  // View donor details
   const handleView = async (id) => {
     try {
-
-      // If allowed, fetch donor details
       setViewLoading(true);
       const result = await fetchDonorById(id);
       setViewLoading(false);
@@ -88,17 +185,16 @@ export default function PatientDonorsList() {
       toast.error('Something went wrong while fetching donor details.');
     }
   };
-
-  // Send blood request
-  const handleSendRequest = async () => {
-    if (!requestDetails.message.trim()) return toast.error('Message is required');
+  const onSubmit = async (data) => {
     if (donorStatus === 'Pending' || donorStatus === 'Approved') {
       return toast.warning(`Action not allowed: Current status is ${donorStatus}`);
     }
-    const request = await sendBloodRequest(selectedDonor._id, requestDetails);
+
+    const request = await sendBloodRequest(selectedDonor._id, data);
+
     if (request) {
       setIsDialogOpen(false);
-      setRequestDetails({
+      reset({
         message: '',
         patientAge: '',
         bottlesRequired: '',
@@ -116,7 +212,6 @@ export default function PatientDonorsList() {
 
   return (
     <div className="p-4 sm:p-8 space-y-8 animate-in fade-in duration-700">
-      {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#0f0f0f] border border-white/5 p-8 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden group">
         <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
         <div className="relative z-10 space-y-2">
@@ -139,11 +234,10 @@ export default function PatientDonorsList() {
           </div>
         </div>
       </div>
-
-      {/* SEARCH & FILTERS */}
       <section className="bg-[#0f0f0f]/60 backdrop-blur-xl border border-white/10 p-8 rounded-xl space-y-8 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <ModernInput
+            id="search-name"
             label="Search by Name"
             placeholder="Donor name..."
             value={name}
@@ -151,9 +245,10 @@ export default function PatientDonorsList() {
             icon={Search}
           />
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-white/80 tracking-[.25em] ml-1">Blood Group</label>
+            <label htmlFor="filter-blood" className="text-[10px] font-black uppercase text-white/80 tracking-[.25em] ml-1 cursor-pointer">Blood Group</label>
             <div className="relative group">
               <select
+                id="filter-blood"
                 className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-6 py-5 text-sm focus:outline-none focus:border-donor/50 focus:ring-1 focus:ring-donor/20 transition-all text-white appearance-none cursor-pointer placeholder:text-white/60 shadow-xl"
                 value={bloodGroup}
                 onChange={(e) => setBloodGroup(e.target.value)}
@@ -167,6 +262,7 @@ export default function PatientDonorsList() {
             </div>
           </div>
           <ModernInput
+            id="search-city"
             label="Search by City"
             placeholder="City/Region..."
             value={location}
@@ -174,9 +270,10 @@ export default function PatientDonorsList() {
             icon={MapPin}
           />
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-white/80 tracking-[.25em] ml-1">Show Per Page</label>
+            <label htmlFor="filter-limit" className="text-[10px] font-black uppercase text-white/80 tracking-[.25em] ml-1 cursor-pointer">Show Per Page</label>
             <div className="relative group">
               <select
+                id="filter-limit"
                 className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-6 py-5 text-sm focus:outline-none focus:border-donor/50 focus:ring-1 focus:ring-donor/20 transition-all text-white appearance-none cursor-pointer placeholder:text-white/60 shadow-xl"
                 value={limit}
                 onChange={(e) => setLimit(Number(e.target.value))}
@@ -193,12 +290,10 @@ export default function PatientDonorsList() {
         <div className="flex items-center justify-between pt-4 border-t border-white/5 text-[10px] font-black uppercase tracking-widest text-gray-500">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-donor animate-pulse" />
-            <span>Loading total donors from network...</span>
+            <span>{loading ? 'Searching donors...' : `Found ${totalResults || 0} donors matching criteria`}</span>
           </div>
         </div>
       </section>
-
-      {/* DONORS TABLE */}
       <div className="relative bg-[#0c0c0c] border border-white/5 rounded-xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
@@ -253,11 +348,11 @@ export default function PatientDonorsList() {
                         </span>
                       </td>
                       <td className="p-4">
-                        <div className="flex items-center gap-2 text-gray-400 group-hover:text-gray-300 transition-colors">
-                          <div className="h-6 w-6 rounded-md bg-neutral-900 flex items-center justify-center border border-white/5">
+                        <div className="flex items-center gap-2 text-gray-400 group-hover:text-gray-300 transition-colors max-w-[220px]">
+                          <div className="h-6 w-6 rounded-md bg-neutral-900 flex items-center justify-center border border-white/5 shrink-0">
                             <MapPin className="w-3 h-3 text-donor/50" />
                           </div>
-                          <span className="text-xs font-bold uppercase tracking-tighter">{d.location}</span>
+                          <span className="text-xs font-bold uppercase tracking-tighter break-words whitespace-normal leading-relaxed">{d.location}</span>
                         </div>
                       </td>
                       <td className="p-4 text-center">
@@ -284,8 +379,6 @@ export default function PatientDonorsList() {
             </tbody>
           </table>
         </div>
-
-        {/* Background loading overlay */}
         {loading && donors.length > 0 && (
           <div className="absolute inset-0 bg-black/5 flex items-center justify-center pointer-events-none z-20">
             <div className="bg-black/80 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 flex items-center gap-3 shadow-2xl">
@@ -295,8 +388,6 @@ export default function PatientDonorsList() {
           </div>
         )}
       </div>
-
-      {/* PAGINATION */}
       <div className="mt-8 flex justify-center">
         <Pagination
           pageCount={totalPages}
@@ -304,15 +395,12 @@ export default function PatientDonorsList() {
           onPageChange={(page) => fetchDonors(page, limit)}
         />
       </div>
-
-      {/* VIEW DONOR DETAILS DIALOG */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
         <DialogContent
           showCloseButton={false}
           className="sm:max-w-4xl lg:max-w-[calc(100vw-320px)] xl:max-w-5xl lg:left-[calc(50%+140px)] bg-[#0f0f0f]/95 backdrop-blur-2xl border border-white/10 rounded-xl shadow-[0_0_100px_rgba(0,0,0,1)] p-0 overflow-hidden outline-none border-none"
         >
           <div className="relative max-h-[85vh] overflow-y-auto custom-scrollbar p-8 md:p-14">
-            {/* Close Button */}
             <DialogClose className="absolute right-6 top-6 md:right-8 md:top-8 p-3 bg-white/5 hover:bg-donor hover:text-black rounded-lg transition-all border border-white/10 z-50">
               <X className="w-5 h-5" />
             </DialogClose>
@@ -324,21 +412,20 @@ export default function PatientDonorsList() {
               </div>
             ) : (
               <div className="space-y-10">
-                {/* Donor Header */}
                 <div className="flex flex-col md:flex-row md:items-center gap-6">
                   <div className="relative">
                     <div className="h-24 w-24 rounded-xl bg-gradient-to-br from-red-600 to-orange-600 flex items-center justify-center shadow-2xl border-2 border-donor/50">
                       <User className="w-10 h-10 text-white" />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-1">
                     <h2 className="text-3xl font-black text-white uppercase tracking-tighter">{selectedDonor?.fullName}</h2>
                     <div className="flex items-center gap-3 pt-1">
                       <span className={`text-[10px] font-black px-4 py-1.5 rounded-full border uppercase tracking-widest ${donorStatus === 'Approved' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                          donorStatus === 'Pending' ? 'bg-donor/10 text-donor border-donor/20 animate-pulse' :
-                            donorStatus === 'Rejected' ? 'bg-gray-500/10 text-gray-400 border-white/5' :
-                              'bg-white/5 text-gray-500 border-white/5'
+                        donorStatus === 'Pending' ? 'bg-donor/10 text-donor border-donor/20 animate-pulse' :
+                          donorStatus === 'Rejected' ? 'bg-gray-500/10 text-gray-400 border-white/5' :
+                            'bg-white/5 text-gray-500 border-white/5'
                         }`}>
                         {donorStatus || 'No Request'}
                       </span>
@@ -348,17 +435,20 @@ export default function PatientDonorsList() {
                     </div>
                   </div>
                 </div>
-
-                {/* Donor Info Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-10 bg-white/[0.02] border border-white/5 rounded-xl">
-                  <DetailBox icon={Droplets} label="Blood Group" value={selectedDonor?.bloodGroup} color="text-donor" />
-                  <DetailBox icon={User} label="Gender" value={selectedDonor?.gender} />
-                  <DetailBox icon={Mail} label="Email" value={selectedDonor?.email} sensitive={donorStatus !== 'Approved'} />
-                  <DetailBox icon={Phone} label="Phone" value={selectedDonor?.phone} sensitive={donorStatus !== 'Approved'} />
-                  <DetailBox icon={MapPin} label="City" value={selectedDonor?.location} span={1} />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-10 bg-white/[0.02] border border-white/5 rounded-[2rem]">
+                  <InfoDetailBox variant="dashboard" icon={Droplets} label="Blood Group" value={selectedDonor?.bloodGroup} color="text-donor" />
+                  <InfoDetailBox variant="dashboard" icon={User} label="Gender" value={selectedDonor?.gender} />
+                  <InfoDetailBox variant="dashboard" icon={Mail} label="Email" value={selectedDonor?.email} sensitive={donorStatus !== 'Approved'} />
+                  <InfoDetailBox
+                    variant="dashboard"
+                    icon={selectedDonor?.emailVerified ? ClipboardCheck : ShieldAlert}
+                    label="Email Status"
+                    value={selectedDonor?.emailVerified ? 'Verified' : 'Unverified'}
+                    color={selectedDonor?.emailVerified ? 'text-green-400 font-bold' : 'text-donor font-bold'}
+                  />
+                  <InfoDetailBox variant="dashboard" icon={Phone} label="Phone" value={selectedDonor?.phone} sensitive={donorStatus !== 'Approved'} />
+                  <InfoDetailBox variant="dashboard" icon={MapPin} label="City" value={selectedDonor?.location} span={1} />
                 </div>
-
-                {/* Blood Request Form */}
                 <div className="space-y-10">
                   <div className="flex items-center gap-4">
                     <div className="h-px bg-white/5 flex-grow"></div>
@@ -395,70 +485,212 @@ export default function PatientDonorsList() {
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-8">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <ModernRequestInput label="Reason for Blood" placeholder="Medical case / surgery reason..." value={requestDetails.caseDescription} onChange={(val) => setRequestDetails({ ...requestDetails, caseDescription: val })} />
+                        <div>
+                          <Controller
+                            name="caseDescription"
+                            control={control}
+                            render={({ field }) => (
+                              <ModernRequestInput
+                                id="req-reason"
+                                label="Reason for Blood"
+                                placeholder="Medical case / surgery reason..."
+                                value={field.value}
+                                onChange={field.onChange}
+                                disabled={loading}
+                              />
+                            )}
+                          />
+                          {errors.caseDescription && <p className="text-donor text-xs font-semibold mt-2">{errors.caseDescription.message}</p>}
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
-                          <ModernRequestInput label="Patient Age" type="number" placeholder="Years" value={requestDetails.patientAge} onChange={(val) => setRequestDetails({ ...requestDetails, patientAge: val })} />
-                          <ModernRequestInput label="Bottles Needed" type="number" placeholder="Bottles" value={requestDetails.bottlesRequired} onChange={(val) => setRequestDetails({ ...requestDetails, bottlesRequired: val })} />
+                          <div>
+                            <Controller
+                              name="patientAge"
+                              control={control}
+                              render={({ field }) => (
+                                <ModernRequestInput
+                                  id="req-age"
+                                  label="Patient Age"
+                                  type="number"
+                                  placeholder="Years"
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  disabled={loading}
+                                />
+                              )}
+                            />
+                            {errors.patientAge && <p className="text-donor text-xs font-semibold mt-2">{errors.patientAge.message}</p>}
+                          </div>
+                          <div>
+                            <Controller
+                              name="bottlesRequired"
+                              control={control}
+                              render={({ field }) => (
+                                <ModernRequestInput
+                                  id="req-bottles"
+                                  label="Bottles Needed"
+                                  type="number"
+                                  placeholder="Bottles"
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  disabled={loading}
+                                />
+                              )}
+                            />
+                            {errors.bottlesRequired && <p className="text-donor text-xs font-semibold mt-2">{errors.bottlesRequired.message}</p>}
+                          </div>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <ModernRequestInput label="Hospital Name" placeholder="Hospital / Clinic name" value={requestDetails.hospitalName} onChange={(val) => setRequestDetails({ ...requestDetails, hospitalName: val })} icon={ShieldCheck} />
-                        <ModernRequestInput label="City" placeholder="City / Area" value={requestDetails.city} onChange={(val) => setRequestDetails({ ...requestDetails, city: val })} icon={MapPin} />
+                        <div>
+                          <Controller
+                            name="hospitalName"
+                            control={control}
+                            render={({ field }) => (
+                              <ModernRequestInput
+                                id="req-hospital"
+                                label="Hospital Name"
+                                placeholder="Hospital / Clinic name"
+                                value={field.value}
+                                onChange={field.onChange}
+                                icon={ShieldCheck}
+                                disabled={loading}
+                              />
+                            )}
+                          />
+                          {errors.hospitalName && <p className="text-donor text-xs font-semibold mt-2">{errors.hospitalName.message}</p>}
+                        </div>
+                        <div>
+                          <Controller
+                            name="city"
+                            control={control}
+                            render={({ field }) => (
+                              <ModernRequestInput
+                                id="req-city"
+                                label="City"
+                                placeholder="City / Area"
+                                value={field.value}
+                                onChange={field.onChange}
+                                icon={MapPin}
+                                disabled={loading}
+                              />
+                            )}
+                          />
+                          {errors.city && <p className="text-donor text-xs font-semibold mt-2">{errors.city.message}</p>}
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <ModernRequestInput label="Attendant Name" placeholder="Guardian / Attendant name" value={requestDetails.attendantName} onChange={(val) => setRequestDetails({ ...requestDetails, attendantName: val })} icon={User} />
-                        <ModernRequestInput label="Attendant Phone" placeholder="Phone number" value={requestDetails.attendantPhone} onChange={(val) => setRequestDetails({ ...requestDetails, attendantPhone: val })} icon={Phone} />
+                        <div>
+                          <Controller
+                            name="attendantName"
+                            control={control}
+                            render={({ field }) => (
+                              <ModernRequestInput
+                                id="req-attendant"
+                                label="Attendant Name"
+                                placeholder="Guardian / Attendant name"
+                                value={field.value}
+                                onChange={field.onChange}
+                                icon={User}
+                                disabled={loading}
+                              />
+                            )}
+                          />
+                          {errors.attendantName && <p className="text-donor text-xs font-semibold mt-2">{errors.attendantName.message}</p>}
+                        </div>
+                        <div>
+                          <Controller
+                            name="attendantPhone"
+                            control={control}
+                            render={({ field }) => (
+                              <ModernRequestInput
+                                id="req-phone"
+                                label="Attendant Phone"
+                                placeholder="Phone number"
+                                value={field.value}
+                                onChange={field.onChange}
+                                icon={Phone}
+                                disabled={loading}
+                              />
+                            )}
+                          />
+                          {errors.attendantPhone && <p className="text-donor text-xs font-semibold mt-2">{errors.attendantPhone.message}</p>}
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-black uppercase text-white/60 tracking-[.2em] ml-1">Pick & Drop Available?</label>
-                          <select
-                            className="w-full bg-[#121212] border border-white/10 rounded-lg px-6 py-5 text-sm focus:outline-none focus:border-red-500/50 transition-all text-white appearance-none cursor-pointer shadow-xl"
-                            value={requestDetails.pickAndDrop}
-                            onChange={(e) => setRequestDetails({ ...requestDetails, pickAndDrop: e.target.value })}
-                          >
-                            <option value="No">No</option>
-                            <option value="Yes">Yes</option>
-                          </select>
-                        </div>
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-black uppercase text-white/60 tracking-[.2em] ml-1">Blood Exchange Possible?</label>
-                          <select
-                            className="w-full bg-[#121212] border border-white/10 rounded-lg px-6 py-5 text-sm focus:outline-none focus:border-red-500/50 transition-all text-white appearance-none cursor-pointer shadow-xl"
-                            value={requestDetails.exchangePossibility}
-                            onChange={(e) => setRequestDetails({ ...requestDetails, exchangePossibility: e.target.value })}
-                          >
-                            <option value="No">No</option>
-                            <option value="Yes">Yes</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase text-white/60 tracking-[.2em] ml-1">Your Message</label>
-                        <textarea
-                          className="w-full bg-[#121212] border border-white/10 rounded-xl px-8 py-7 text-sm focus:outline-none focus:border-red-500/50 transition-all text-white min-h-[160px] resize-none placeholder:text-white/40 shadow-2xl"
-                          placeholder="Describe your situation and why you need blood..."
-                          value={requestDetails.message}
-                          onChange={(e) => setRequestDetails({ ...requestDetails, message: e.target.value })}
+                        <Controller
+                          name="pickAndDrop"
+                          control={control}
+                          render={({ field }) => (
+                            <div className="space-y-3">
+                              <label htmlFor="req-pickup" className="text-[10px] font-black uppercase text-white/60 tracking-[.2em] ml-1 cursor-pointer">Pick & Drop Available?</label>
+                              <select
+                                id="req-pickup"
+                                className="w-full bg-[#121212] border border-white/10 rounded-lg px-6 py-5 text-sm focus:outline-none focus:border-red-500/50 transition-all text-white appearance-none cursor-pointer shadow-xl"
+                                {...field}
+                                disabled={loading}
+                              >
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                              </select>
+                            </div>
+                          )}
+                        />
+                        <Controller
+                          name="exchangePossibility"
+                          control={control}
+                          render={({ field }) => (
+                            <div className="space-y-3">
+                              <label htmlFor="req-exchange" className="text-[10px] font-black uppercase text-white/60 tracking-[.2em] ml-1 cursor-pointer">Blood Exchange Possible?</label>
+                              <select
+                                id="req-exchange"
+                                className="w-full bg-[#121212] border border-white/10 rounded-lg px-6 py-5 text-sm focus:outline-none focus:border-red-500/50 transition-all text-white appearance-none cursor-pointer shadow-xl"
+                                {...field}
+                                disabled={loading}
+                              >
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                              </select>
+                            </div>
+                          )}
                         />
                       </div>
 
+                      <div className="space-y-3">
+                        <Controller
+                          name="message"
+                          control={control}
+                          render={({ field }) => (
+                            <div className="space-y-3">
+                              <label htmlFor="req-msg" className="text-[10px] font-black uppercase text-white/60 tracking-[.2em] ml-1 cursor-pointer">Your Message</label>
+                              <textarea
+                                id="req-msg"
+                                className="w-full bg-[#121212] border border-white/10 rounded-xl px-8 py-7 text-sm focus:outline-none focus:border-red-500/50 transition-all text-white min-h-[160px] resize-none placeholder:text-white/40 shadow-2xl"
+                                placeholder="Describe your situation and why you need blood..."
+                                {...field}
+                                disabled={loading}
+                              />
+                            </div>
+                          )}
+                        />
+                        {errors.message && <p className="text-donor text-xs font-semibold mt-2">{errors.message.message}</p>}
+                      </div>
+
                       <button
-                        onClick={handleSendRequest}
-                        disabled={!requestDetails.message.trim() || loading}
+                        type="submit"
+                        disabled={!formMessage || !formMessage.trim() || loading}
                         className="w-full py-7 rounded-lg bg-gradient-to-br from-red-600 via-red-500 to-orange-600 text-white font-black uppercase tracking-[0.4em] shadow-[0_20px_60px_rgba(220,38,38,0.4)] hover:shadow-[0_25px_80px_rgba(220,38,38,0.6)] hover:scale-[1.01] active:scale-[0.98] transition-all disabled:opacity-30 disabled:grayscale disabled:scale-100 italic border border-white/20"
                       >
                         {loading ? <MiniSpinner size={24} className="mx-auto" /> :
                           donorStatus === 'Rejected' ? 'Send Request Again' :
                             'Send Blood Request'}
                       </button>
-                    </div>
+                    </form>
                   )}
 
                   <div className="flex justify-end pt-4">
@@ -474,59 +706,6 @@ export default function PatientDonorsList() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
-
-function DetailBox({ icon: Icon, label, value, color = 'text-white/90', span = 1, sensitive = false }) {
-  const spanClass = span === 3 ? 'md:col-span-3' : span === 2 ? 'md:col-span-2' : '';
-  return (
-    <div className={`space-y-3 ${spanClass} group`}>
-      <div className="flex items-center gap-2">
-        <Icon className="w-4 h-4 text-white/40 group-hover:text-red-500 transition-colors" />
-        <span className="text-[10px] font-black text-white/50 uppercase tracking-[.25em] leading-none">{label}</span>
-      </div>
-      <div className={`p-6 bg-white/[0.03] border border-white/10 rounded-lg font-black text-xs uppercase tracking-tight break-all whitespace-normal ${sensitive ? 'text-gray-600 italic' : color} group-hover:bg-white/[0.06] group-hover:border-white/20 transition-all duration-300 shadow-lg shadow-black/40`}>
-        {sensitive ? 'Hidden until approved' : (value || 'Not available')}
-      </div>
-    </div>
-  );
-}
-
-function ModernInput({ label, type = "text", placeholder, value, onChange, icon: Icon = null, disabled = false }) {
-  return (
-    <div className="space-y-3 flex-grow">
-      <label className="text-[10px] font-black uppercase text-white/80 tracking-[0.2em] ml-1">{label}</label>
-      <div className="relative group">
-        {Icon && <Icon className="absolute left-6 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-white/20 group-focus-within:text-red-500 transition-all" />}
-        <input
-          type={type}
-          placeholder={placeholder}
-          disabled={disabled}
-          className={`w-full bg-white/[0.04] border border-white/10 rounded-lg px-6 py-5 text-sm focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all text-white ${Icon ? 'pl-16' : ''} placeholder:text-white/60 shadow-xl shadow-black/20 ${disabled ? 'opacity-40 cursor-not-allowed grayscale' : ''}`}
-          value={value}
-          onChange={(e) => !disabled && onChange(e.target.value)}
-        />
-      </div>
-    </div>
-  );
-}
-
-function ModernRequestInput({ label, type = "text", placeholder, value, onChange, icon: Icon = null, disabled = false }) {
-  return (
-    <div className="space-y-3 flex-grow">
-      <label className="text-[10px] font-black uppercase text-white/80 tracking-[0.2em] ml-1">{label}</label>
-      <div className="relative group">
-        {Icon && <Icon className="absolute left-7 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-white/20 group-focus-within:text-red-500 transition-all z-10" />}
-        <input
-          type={type}
-          placeholder={placeholder}
-          disabled={disabled}
-          className={`w-full bg-[#121212] border border-white/10 rounded-lg ${Icon ? 'pl-16' : 'px-8'} py-5 text-sm focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all text-white placeholder:text-white/60 shadow-2xl shadow-inner scrollbar-hide ${disabled ? 'opacity-40 cursor-not-allowed grayscale' : ''}`}
-          value={value}
-          onChange={(e) => !disabled && onChange(e.target.value)}
-        />
-      </div>
     </div>
   );
 }

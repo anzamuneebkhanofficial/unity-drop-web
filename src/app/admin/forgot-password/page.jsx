@@ -1,7 +1,6 @@
-/** @format */
-'use client';
 
-import React, { useState } from 'react';
+'use client';
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -10,21 +9,26 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAdminAuthStore } from '@/store/auth/authAdminStore';
 import CaptchaField from '@/components/common/CaptchaField';
-
+import { Loader2 } from 'lucide-react';
 const resetLinkSchema = yup.object().shape({
   email: yup.string().email('Invalid email').required('Email is required'),
 });
-
 const AdminForgotPassword = () => {
   const router = useRouter();
-  const { requestResetLink, loading, error, success, resetMessages } = useAdminAuthStore();
+  const { requestResetLink, loading, resetMessages } = useAdminAuthStore();
+
   const [captchaToken, setCaptchaToken] = useState('');
-  
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  // Clean up store messages on mount
+  useEffect(() => {
+    resetMessages();
+  }, [resetMessages]);
+
   const {
     handleSubmit,
     control,
-    reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(resetLinkSchema),
     defaultValues: { email: '' },
@@ -35,13 +39,19 @@ const AdminForgotPassword = () => {
       toast.error('Verification pending or failed. Please refresh the page.');
       return;
     }
+
     const result = await requestResetLink(data.email, captchaToken);
-    if (result) router.replace('/admin/login');
+
+    if (result) {
+      setIsNavigating(true);
+      router.replace('/admin/login');
+    }
   };
+
+  const isFormDisabled = isSubmitting || loading || isNavigating;
 
   return (
     <div className="flex min-h-screen bg-bg text-white overflow-hidden">
-      {/* Left Brand Panel - Cinematic */}
       <div className="hidden lg:flex flex-col justify-center items-center w-3/5 relative overflow-hidden bg-surface">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--highlight-hex),0.12),transparent_70%)] animate-pulse"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-white/5 rounded-full opacity-20"></div>
@@ -70,7 +80,6 @@ const AdminForgotPassword = () => {
         </div>
       </div>
 
-      {/* Right Form */}
       <div className="flex flex-1 items-center justify-center p-8 md:p-12 relative">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(var(--highlight-hex),0.05),transparent_50%)]"></div>
 
@@ -78,7 +87,9 @@ const AdminForgotPassword = () => {
           onSubmit={handleSubmit(onSubmit)}
           className="bg-surface-2/40 backdrop-blur-3xl border border-white/10 p-10 md:p-14 rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.8)] w-full max-w-xl space-y-10 relative z-10"
         >
-          {/* Header */}
+          {isFormDisabled && (
+            <div className="absolute inset-0 rounded-[3rem] z-50 cursor-not-allowed" aria-hidden="true" />
+          )}
           <div className="space-y-2 text-center">
             <h2 className="text-3xl font-black text-white uppercase tracking-tighter italic">Forgot Password</h2>
             <p className="text-text-dim text-[10px] font-black uppercase tracking-[0.4em]">Enter your email</p>
@@ -86,7 +97,9 @@ const AdminForgotPassword = () => {
 
           <div className="space-y-6">
             <div className="space-y-2 group">
-              <label className="text-[10px] font-black uppercase text-text-dim tracking-[0.2em] ml-2 group-focus-within:text-highlight transition-colors">Admin Email</label>
+              <label htmlFor="email" className="text-[10px] font-black uppercase text-text-dim tracking-[0.2em] ml-2 group-focus-within:text-highlight transition-colors cursor-pointer">
+                Admin Email
+              </label>
               <div className="relative">
                 <Controller
                   name="email"
@@ -94,8 +107,12 @@ const AdminForgotPassword = () => {
                   render={({ field }) => (
                     <input
                       {...field}
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      disabled={isFormDisabled}
                       placeholder="Enter your email"
-                      className="w-full bg-bg border border-white/5 text-white p-5 rounded-2xl focus:outline-none focus:border-highlight/50 transition-all font-bold tracking-tight"
+                      className="w-full bg-bg border border-white/5 text-white p-5 rounded-2xl focus:outline-none focus:border-highlight/50 transition-all font-bold tracking-tight disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   )}
                 />
@@ -107,21 +124,26 @@ const AdminForgotPassword = () => {
               )}
             </div>
           </div>
-
           <CaptchaField onVerify={setCaptchaToken} />
-
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-highlight hover:bg-highlight/90 text-black font-black uppercase tracking-[0.2em] text-xs py-6 rounded-2xl transition-all shadow-[0_10px_30px_rgba(var(--highlight-hex),0.2)] active:scale-[0.98] disabled:opacity-50"
+            disabled={isFormDisabled}
+            className="w-full bg-highlight hover:bg-highlight/90 text-black font-black uppercase tracking-[0.2em] text-xs py-6 rounded-2xl transition-all shadow-[0_10px_30px_rgba(var(--highlight-hex),0.2)] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {loading ? 'Sending...' : 'Send Reset Link'}
+            {isFormDisabled ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Sending...</span>
+              </>
+            ) : (
+              'Send Reset Link'
+            )}
           </button>
 
           <div className="text-center pt-4">
             <Link
               href="/admin/login"
-              className="text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-highlight transition-colors py-2"
+              className="text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-highlight transition-colors py-2 relative z-10"
             >
               Return to Login
             </Link>

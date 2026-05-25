@@ -1,7 +1,7 @@
-/** @format */
+
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -10,22 +10,27 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { usePatientAuthStore } from '@/store/auth/authPatientStore';
 import CaptchaField from '@/components/common/CaptchaField';
-
+import { Loader2 } from 'lucide-react';
 const verifySchema = yup.object().shape({
   email: yup.string().email('Invalid email').required('Email is required'),
   otp: yup.string().required('OTP is required'),
 });
-
 const PatientVerifyEmail = () => {
   const router = useRouter();
-  const { verifyEmail, loading, error, success, resetMessages } = usePatientAuthStore();
+  const { verifyEmail, loading, resetMessages } = usePatientAuthStore();
+
   const [captchaToken, setCaptchaToken] = useState('');
-  
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  //Clean up store messages on mount
+  useEffect(() => {
+    resetMessages();
+  }, [resetMessages]);
+
   const {
     handleSubmit,
     control,
-    reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(verifySchema),
     defaultValues: { email: '', otp: '' },
@@ -36,13 +41,20 @@ const PatientVerifyEmail = () => {
       toast.error('Verification pending or failed. Please refresh the page.');
       return;
     }
+
     const result = await verifyEmail(data.email, data.otp, captchaToken);
-    if (result) router.replace('/patient/login');
+
+    if (result) {
+      setIsNavigating(true);
+      router.replace('/patient/login');
+    }
   };
+
+  const isFormDisabled = isSubmitting || isNavigating || loading;
 
   return (
     <div className="flex min-h-screen bg-bg text-white overflow-hidden">
-      {/* Left Brand Panel - Cinematic */}
+
       <div className="hidden lg:flex flex-col justify-center items-center w-3/5 relative overflow-hidden bg-surface">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--highlight-hex),0.12),transparent_70%)] animate-pulse"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-white/5 rounded-full opacity-20"></div>
@@ -70,16 +82,16 @@ const PatientVerifyEmail = () => {
           </div>
         </div>
       </div>
-
-      {/* Right Form */}
-      <div className="flex flex-1 items-center justify-center p-8 md:p-12 relative">
+      <div className="flex flex-1 items-center justify-center p-6 md:p-8 lg:p-12 relative">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(var(--highlight-hex),0.05),transparent_50%)]"></div>
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="bg-surface-2/40 backdrop-blur-3xl border border-white/10 p-10 md:p-14 rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.8)] w-full max-w-xl space-y-10 relative z-10"
+          className="bg-surface-2/40 backdrop-blur-3xl border border-white/10 p-8 md:p-10 lg:p-14 rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.8)] w-full max-w-xl space-y-10 relative z-10 theme-patient overflow-x-hidden"
         >
-          {/* Header */}
+          {isFormDisabled && (
+            <div className="absolute inset-0 rounded-[3rem] z-50 cursor-not-allowed" aria-hidden="true" />
+          )}
           <div className="space-y-2 text-center">
             <h2 className="text-3xl font-black text-white uppercase tracking-tighter italic">Verify Email</h2>
             <p className="text-text-dim text-[10px] font-black uppercase tracking-[0.4em]">Verification code</p>
@@ -87,7 +99,9 @@ const PatientVerifyEmail = () => {
 
           <div className="space-y-6">
             <div className="space-y-2 group">
-              <label className="text-[10px] font-black uppercase text-text-dim tracking-[0.2em] ml-2 group-focus-within:text-highlight transition-colors">Patient Email</label>
+              <label htmlFor="email" className="text-[10px] font-black uppercase text-text-dim tracking-[0.2em] ml-2 group-focus-within:text-highlight transition-colors cursor-pointer">
+                Patient Email
+              </label>
               <div className="relative">
                 <Controller
                   name="email"
@@ -95,8 +109,12 @@ const PatientVerifyEmail = () => {
                   render={({ field }) => (
                     <input
                       {...field}
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      disabled={isFormDisabled}
                       placeholder="Enter your email"
-                      className="w-full bg-bg border border-white/5 text-white p-5 rounded-2xl focus:outline-none focus:border-highlight/50 transition-all font-bold tracking-tight"
+                      className="w-full bg-bg border border-white/5 text-white p-5 rounded-2xl focus:outline-none focus:border-highlight/50 transition-all font-bold tracking-tight disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   )}
                 />
@@ -109,7 +127,9 @@ const PatientVerifyEmail = () => {
             </div>
 
             <div className="space-y-2 group">
-              <label className="text-[10px] font-black uppercase text-text-dim tracking-[0.2em] ml-2 group-focus-within:text-highlight transition-colors">Verification OTP</label>
+              <label htmlFor="otp" className="text-[10px] font-black uppercase text-text-dim tracking-[0.2em] ml-2 group-focus-within:text-highlight transition-colors cursor-pointer">
+                Verification OTP
+              </label>
               <div className="relative">
                 <Controller
                   name="otp"
@@ -117,8 +137,12 @@ const PatientVerifyEmail = () => {
                   render={({ field }) => (
                     <input
                       {...field}
+                      id="otp"
+                      type="text"
+                      autoComplete="one-time-code"
+                      disabled={isFormDisabled}
                       placeholder="Enter the code"
-                      className="w-full bg-bg border border-white/5 text-white p-5 rounded-2xl focus:outline-none focus:border-highlight/50 transition-all font-bold text-center tracking-[0.5em]"
+                      className="w-full bg-bg border border-white/5 text-white p-5 rounded-2xl focus:outline-none focus:border-highlight/50 transition-all font-bold text-center tracking-[0.5em] disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   )}
                 />
@@ -135,16 +159,23 @@ const PatientVerifyEmail = () => {
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-highlight hover:bg-highlight/90 text-black font-black uppercase tracking-[0.2em] text-xs py-6 rounded-2xl transition-all shadow-[0_10px_30px_rgba(var(--highlight-hex),0.2)] active:scale-[0.98] disabled:opacity-50"
+            disabled={isFormDisabled}
+            className="w-full bg-highlight hover:bg-highlight/90 text-black font-black uppercase tracking-[0.2em] text-xs py-6 rounded-2xl transition-all shadow-[0_10px_30px_rgba(var(--highlight-hex),0.2)] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {loading ? 'Verifying...' : 'Verify Email'}
+            {isFormDisabled ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Verifying...</span>
+              </>
+            ) : (
+              'Verify Email'
+            )}
           </button>
 
           <div className="text-center pt-4">
             <Link
               href="/patient/login"
-              className="text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-highlight transition-colors py-2"
+              className="text-[10px] font-black uppercase tracking-widest text-text-dim hover:text-highlight transition-colors py-2 relative z-10"
             >
               Already verified? Login
             </Link>
