@@ -54,6 +54,9 @@ export const metadata = {
     statusBarStyle: 'black-translucent',
     title: 'UnityDrop',
   },
+  verification: {
+    google: '4r4KsnlwhjqpIR5F10TPAaNm3V_pw-cbZrned_6uicg',
+  },
 };
 
 export const viewport = {
