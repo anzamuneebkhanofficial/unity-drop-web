@@ -141,8 +141,8 @@ const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button
                   className={`rounded-full px-5 py-2.5 font-bold transition-all duration-300 border h-auto ${isSuperAdmin
-                      ? 'bg-highlight/10 hover:bg-highlight/20 border-highlight/40 text-highlight shadow-[0_0_15px_rgba(var(--highlight-hex),0.15)]'
-                      : 'bg-surface-3 hover:bg-surface-2 border-white/10 text-white'
+                    ? 'bg-highlight/10 hover:bg-highlight/20 border-highlight/40 text-highlight shadow-[0_0_15px_rgba(var(--highlight-hex),0.15)]'
+                    : 'bg-surface-3 hover:bg-surface-2 border-white/10 text-white'
                     }`}
                 >
                   {isSuperAdmin ? <ShieldCheck className="w-4 h-4 mr-2" /> : <User className={`w-4 h-4 mr-2 ${role === 'Donor' ? 'text-donor' : 'text-highlight'}`} />}
@@ -150,8 +150,12 @@ const Header = () => {
                 </Button>
 
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-surface border-white/10 text-text-muted w-64 shadow-2xl animate-in fade-in zoom-in-95 duration-300 rounded-2xl p-2">
-                <DropdownMenuLabel className="font-normal px-4 py-3">
+              <DropdownMenuContent
+                align="end"
+                sideOffset={22}
+                className="bg-surface border border-white/10 text-text-muted w-64 shadow-2xl rounded-xl p-1.5 z-[999] animate-in fade-in zoom-in-95 duration-200"
+              >
+                <DropdownMenuLabel className="font-normal px-3 py-2.5">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-black leading-none text-white flex items-center gap-2">
                       {activeUser.fullName}
@@ -162,17 +166,17 @@ const Header = () => {
                     </p>
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-white/5 mx-2" />
-                <DropdownMenuItem asChild className={`cursor-pointer py-2 ${role === 'Donor' ? 'focus:bg-donor' : 'focus:bg-highlight'} focus:text-black`}>
+                <DropdownMenuSeparator className="bg-white/5 my-1" />
+                <DropdownMenuItem asChild className={`cursor-pointer rounded-lg px-3 py-2.5 font-medium ${role === 'Donor' ? 'focus:bg-donor' : 'focus:bg-highlight'} focus:text-black`}>
                   <Link href={getDashboardLink()} className="w-full flex items-center">
                     <LayoutDashboard className="w-4 h-4 mr-2" />
                     Dashboard
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-zinc-800" />
+                <DropdownMenuSeparator className="bg-white/5 my-1" />
                 <DropdownMenuItem
                   onClick={handleLogout}
-                  className="focus:bg-donor/80 focus:text-white cursor-pointer py-2 text-donor"
+                  className="focus:bg-donor/80 focus:text-white cursor-pointer rounded-lg px-3 py-2.5 font-medium text-donor"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout
@@ -187,15 +191,19 @@ const Header = () => {
                     Log In
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-surface border-white/10 text-text-muted w-48 shadow-xl animate-in fade-in zoom-in-95 duration-200">
-                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer py-2 font-medium">
-                    <Link href="/patient/login" className="w-full">Patient Login</Link>
+                <DropdownMenuContent
+                  align="end"
+                  sideOffset={22}
+                  className="bg-surface border border-white/10 text-text-muted w-52 shadow-2xl rounded-xl p-1.5 z-[999] animate-in fade-in zoom-in-95 duration-200"
+                >
+                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium">
+                    <Link href="/patient/login" className="w-full block">Patient Login</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer py-2 font-medium">
-                    <Link href="/donor/login" className="w-full">Donor Login</Link>
+                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium">
+                    <Link href="/donor/login" className="w-full block">Donor Login</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer py-2 font-medium">
-                    <Link href="/admin/login" className="w-full">Admin Login</Link>
+                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium">
+                    <Link href="/admin/login" className="w-full block">Admin Login</Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -206,15 +214,19 @@ const Header = () => {
                     Register
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-surface border-white/10 text-text-muted w-48 shadow-xl animate-in fade-in zoom-in-95 duration-200">
-                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer py-2 font-medium">
-                    <Link href="/patient/register" className="w-full">Register as Patient</Link>
+                <DropdownMenuContent
+                  align="end"
+                  sideOffset={22}
+                  className="bg-surface border border-white/10 text-text-muted w-56 shadow-2xl rounded-xl p-1.5 z-[999] animate-in fade-in zoom-in-95 duration-200"
+                >
+                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium">
+                    <Link href="/patient/register" className="w-full block">Register as Patient</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer py-2 font-medium">
-                    <Link href="/donor/register" className="w-full">Register as Donor</Link>
+                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium">
+                    <Link href="/donor/register" className="w-full block">Register as Donor</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer py-2 font-medium">
-                    <Link href="/admin/register" className="w-full">Register as Admin</Link>
+                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium">
+                    <Link href="/admin/register" className="w-full block">Register as Admin</Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
