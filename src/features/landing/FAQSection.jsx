@@ -34,24 +34,24 @@ const FAQSection = () => {
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-highlight/5 rounded-full blur-[120px] pointer-events-none"></div>
 
             <div className="container mx-auto px-6 max-w-4xl relative z-10">
-                <div className="text-center mb-24 space-y-4">
-                    <span className="text-highlight font-black tracking-[0.4em] uppercase text-xs block opacity-80 italic">Information Hub</span>
-                    <h2 className="text-4xl md:text-5xl font-black text-white italic tracking-tighter uppercase">
-                        Protocol <span className="text-donor">FAQs</span>
+                <div className="text-center mb-16 space-y-4">
+                    <span className="text-highlight font-semibold tracking-wider uppercase text-xs block">Information Hub</span>
+                    <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight">
+                        Common <span className="text-donor">Questions</span>
                     </h2>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-4">
                     {faqs.map((faq, index) => (
-                        <div key={index} className="bg-surface/40 backdrop-blur-xl border border-white/5 rounded-[2rem] overflow-hidden transition-all hover:border-highlight/30 group shadow-lg">
+                        <div key={index} className="bg-surface-2 border border-white/5 rounded-xl overflow-hidden transition-all hover:border-white/20 group">
                             <details className="group/details">
-                                <summary className="flex justify-between items-center font-black cursor-pointer list-none p-8 text-white text-lg focus:outline-none uppercase tracking-tight italic">
+                                <summary className="flex justify-between items-center font-bold cursor-pointer list-none p-6 text-white text-lg focus:outline-none tracking-tight">
                                     <span>{faq.question}</span>
-                                    <span className="transition-transform duration-500 group-open/details:rotate-180 bg-white/5 p-2 rounded-xl group-hover/details:bg-highlight group-hover/details:text-black transition-colors">
+                                    <span className="transition-transform duration-300 group-open/details:rotate-180 text-text-dim group-hover/details:text-white">
                                         <svg fill="none" height="20" shapeRendering="geometricPrecision" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="20"><path d="M6 9l6 6 6-6"></path></svg>
                                     </span>
                                 </summary>
-                                <div className="text-text-muted mt-0 px-8 pb-8 leading-relaxed font-medium text-base animate-in fade-in slide-in-from-top-2 duration-500">
+                                <div className="text-text-muted mt-0 px-6 pb-6 leading-relaxed text-sm animate-in fade-in slide-in-from-top-2 duration-300">
                                     {faq.answer}
                                 </div>
                             </details>

@@ -43,32 +43,32 @@ const FeaturesSection = () => {
 
     return (
         <section id="features" className="bg-bg py-32 relative overflow-hidden">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-[radial-gradient(circle_at_center,rgba(var(--donor-hex),0.05),transparent_70%)] blur-3xl pointer-events-none"></div>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-[radial-gradient(circle_at_center,rgba(var(--donor-hex),0.03),transparent_70%)] blur-3xl pointer-events-none"></div>
 
-            <div className="container mx-auto px-6 relative z-10">
-                <div className="text-center mb-24 space-y-4">
-                    <span className="text-highlight font-black tracking-[0.4em] uppercase text-xs block opacity-80 italic">Our Mission</span>
-                    <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter uppercase leading-none">
+            <div className="container mx-auto px-6 relative z-10 max-w-7xl">
+                <div className="text-center mb-20 space-y-4">
+                    <span className="text-highlight font-semibold tracking-wider uppercase text-xs block">Our Features</span>
+                    <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight">
                         Built to <span className="text-donor">Save Lives</span>
                     </h2>
-                    <p className="text-lg text-text-muted mt-6 max-w-2xl mx-auto font-medium">
-                        A fast, reliable platform designed carefully to help you during medical emergencies.
+                    <p className="text-lg text-text-dim mt-4 max-w-2xl mx-auto">
+                        A fast, reliable platform designed carefully to help you during medical emergencies with total privacy.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {features.map((feature, index) => (
                         <div
                             key={index}
-                            className="group bg-surface/40 backdrop-blur-xl rounded-xl p-10 border border-white/5 hover:border-donor/30 transition-all duration-500 shadow-2xl hover:shadow-donor/5"
+                            className="group bg-surface-2 rounded-xl p-8 border border-white/5 hover:border-white/20 transition-all duration-300 flex flex-col"
                         >
-                            <div className="bg-bg rounded-lg p-5 inline-block mb-8 border border-white/5 group-hover:border-donor/30 group-hover:scale-110 transition-all duration-500 shadow-inner">
+                            <div className="mb-6 flex items-center">
                                 {feature.icon}
                             </div>
-                            <h3 className="text-2xl font-black text-white mb-4 uppercase tracking-tighter italic group-hover:text-donor transition-colors leading-none">
+                            <h3 className="text-xl font-bold text-white mb-3 tracking-tight group-hover:text-highlight transition-colors">
                                 {feature.title}
                             </h3>
-                            <p className="text-text-muted leading-relaxed font-medium text-sm">{feature.description}</p>
+                            <p className="text-text-muted leading-relaxed text-sm">{feature.description}</p>
                         </div>
                     ))}
                 </div>

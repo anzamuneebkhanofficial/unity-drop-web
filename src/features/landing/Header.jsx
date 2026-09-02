@@ -82,15 +82,15 @@ const Header = () => {
       <div className="flex justify-between items-center px-6 lg:px-12 py-4 gap-4 lg:gap-8 w-full max-w-[2000px] mx-auto overflow-x-hidden">
         <Link href="/" className="flex items-center gap-4 group flex-shrink-0">
           <div className="relative">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-donor to-donor/60 flex items-center justify-center shadow-[0_0_20px_rgba(var(--donor-hex),0.3)] border border-white/10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 ease-out">
-              <span className="text-white font-black text-xl tracking-tighter italic drop-shadow-md">U</span>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-donor to-donor/80 flex items-center justify-center border border-white/10 group-hover:scale-105 transition-all duration-300 ease-out">
+              <span className="text-white font-bold text-xl tracking-tight">U</span>
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-xl tracking-tighter text-white leading-none group-hover:text-donor transition-colors">
-              UNITYDROP
+            <span className="font-bold text-xl tracking-tight text-white leading-none group-hover:text-donor transition-colors">
+              UnityDrop
             </span>
-            <span className="text-[9px] uppercase font-black tracking-widest text-text-dim mt-1">
+            <span className="text-[10px] uppercase font-medium tracking-wider text-text-dim mt-1">
               Medical Network
             </span>
           </div>
@@ -140,8 +140,8 @@ const Header = () => {
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button
-                  className={`rounded-full px-5 py-2.5 font-bold transition-all duration-300 border h-auto ${isSuperAdmin
-                    ? 'bg-highlight/10 hover:bg-highlight/20 border-highlight/40 text-highlight shadow-[0_0_15px_rgba(var(--highlight-hex),0.15)]'
+                  className={`rounded-full px-5 py-2.5 font-semibold transition-all duration-300 border h-auto ${isSuperAdmin
+                    ? 'bg-highlight/10 hover:bg-highlight/20 border-highlight/40 text-highlight'
                     : 'bg-surface-3 hover:bg-surface-2 border-white/10 text-white'
                     }`}
                 >
@@ -157,11 +157,11 @@ const Header = () => {
               >
                 <DropdownMenuLabel className="font-normal px-3 py-2.5">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-black leading-none text-white flex items-center gap-2">
+                    <p className="text-sm font-semibold leading-none text-white flex items-center gap-2">
                       {activeUser.fullName}
                       {isSuperAdmin && <ShieldCheck className="w-3 h-3 text-highlight" />}
                     </p>
-                    <p className={`text-[10px] leading-none uppercase tracking-[0.2em] font-black mt-1.5 ${role === 'Donor' ? 'text-donor' : 'text-highlight'}`}>
+                    <p className={`text-xs font-medium mt-1 ${role === 'Donor' ? 'text-donor' : 'text-highlight'}`}>
                       {role}
                     </p>
                   </div>
@@ -210,7 +210,7 @@ const Header = () => {
 
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button className="bg-highlight hover:bg-highlight/80 text-black font-black uppercase tracking-wider transition-all shadow-lg hover:shadow-highlight/20 px-6">
+                  <Button className="bg-highlight hover:bg-highlight/90 text-black font-semibold transition-all px-6 rounded-md">
                     Register
                   </Button>
                 </DropdownMenuTrigger>

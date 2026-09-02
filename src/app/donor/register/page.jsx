@@ -10,6 +10,7 @@ import {
   UserIcon,
   MapPinIcon,
   Loader2,
+  ArrowLeft,
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -92,7 +93,11 @@ const DonorRegister = () => {
   const isFormDisabled = isSubmitting || loading || isNavigating;
 
   return (
-    <div className="flex min-h-screen bg-bg text-white overflow-hidden">
+    <div className="flex min-h-screen bg-bg text-white overflow-hidden relative">
+      <Link href="/" className="absolute top-6 left-6 z-50 flex items-center gap-2 text-text-dim hover:text-white transition-colors bg-surface-2/50 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 hover:border-white/30">
+         <ArrowLeft className="w-4 h-4" />
+         <span className="text-xs font-bold uppercase tracking-wider">Back to Home</span>
+      </Link>
       <div className="hidden lg:flex flex-col justify-center items-center w-2/5 relative overflow-hidden bg-surface">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--donor-hex),0.15),transparent_70%)] animate-pulse"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-white/5 rounded-full opacity-20 lg:block hidden"></div>

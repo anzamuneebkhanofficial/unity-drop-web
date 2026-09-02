@@ -102,14 +102,14 @@ const BloodInfoSection = () => {
             <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[800px] h-[500px] bg-[radial-gradient(circle_at_center,rgba(var(--donor-hex),0.02),transparent_70%)] blur-3xl pointer-events-none"></div>
             <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[800px] h-[500px] bg-[radial-gradient(circle_at_center,rgba(var(--highlight-hex),0.02),transparent_70%)] blur-3xl pointer-events-none"></div>
 
-            <div className="container mx-auto px-6 relative z-10 w-full max-w-[2000px]">
-                <div className="text-center mb-24 max-w-3xl mx-auto space-y-4">
-                    <span className="text-highlight font-black tracking-[0.4em] uppercase text-xs block opacity-80 italic">Compatibility Matrix</span>
-                    <h2 className="text-4xl md:text-5xl font-black text-white italic tracking-tighter uppercase leading-none">
+            <div className="container mx-auto px-6 relative z-10 w-full max-w-7xl">
+                <div className="text-center mb-20 max-w-3xl mx-auto space-y-4">
+                    <span className="text-highlight font-semibold tracking-wider uppercase text-xs block">Compatibility Matrix</span>
+                    <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight">
                         Interactive <span className="text-donor">Blood Matrix</span>
                     </h2>
-                    <p className="text-lg text-text-muted mt-6 font-medium leading-relaxed">
-                        Knowing your compatibility rules is critical in save life emergencies. Select any blood type below to explore its live donation potential, rarity profile, and receiving channels.
+                    <p className="text-lg text-text-dim mt-4">
+                        Knowing your compatibility rules is critical in emergencies. Select any blood type below to explore its live donation potential, rarity profile, and receiving channels.
                     </p>
                 </div>
 
@@ -123,13 +123,13 @@ const BloodInfoSection = () => {
                                     <button
                                         key={bt.type}
                                         onClick={() => setSelectedType(bt.type)}
-                                        className={`relative group rounded-2xl p-6 border transition-all duration-300 flex flex-col items-center justify-center gap-2 aspect-square cursor-pointer active:scale-95 ${isActive
-                                            ? 'bg-donor border-donor shadow-[0_0_30px_rgba(var(--donor-hex),0.3)] text-white'
-                                            : 'bg-surface/40 hover:bg-surface border-white/5 hover:border-donor/30 text-text-muted hover:text-white'
+                                        className={`relative group rounded-xl p-4 border transition-all duration-300 flex flex-col items-center justify-center gap-2 aspect-square cursor-pointer active:scale-95 ${isActive
+                                            ? 'bg-donor border-donor shadow-md text-white'
+                                            : 'bg-surface-2 hover:bg-surface-3 border-white/5 hover:border-donor/30 text-text-muted hover:text-white'
                                             }`}
                                     >
-                                        <span className="text-3xl font-black italic tracking-tighter leading-none">{bt.type}</span>
-                                        <span className={`text-[8px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded border text-center ${isActive ? 'bg-white/10 border-white/20 text-white' : getBadgeStyles(bt.badge)
+                                        <span className="text-2xl font-bold tracking-tight leading-none">{bt.type}</span>
+                                        <span className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full border text-center ${isActive ? 'bg-white/10 border-white/20 text-white' : getBadgeStyles(bt.badge)
                                             }`}>
                                             {bt.type === 'O-' ? 'Donor' : bt.type === 'AB+' ? 'Recipient' : bt.badge}
                                         </span>
@@ -137,17 +137,17 @@ const BloodInfoSection = () => {
                                 );
                             })}
                         </div>
-                        <div className="mt-8 bg-surface/30 backdrop-blur-md rounded-3xl p-8 border border-white/5 space-y-4">
-                            <h4 className="text-xs font-black uppercase tracking-[0.3em] text-highlight flex items-center gap-2">
+                        <div className="mt-8 bg-surface-2 rounded-xl p-6 border border-white/5 space-y-3">
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-highlight flex items-center gap-2">
                                 <HelpCircle className="w-4 h-4" /> Quick Eligibility Rule
                             </h4>
-                            <p className="text-xs text-text-dim leading-relaxed font-medium">
+                            <p className="text-sm text-text-dim leading-relaxed">
                                 Active donors must weigh at least 50kg, be between 18–65 years of age, and test clean of transmissible diseases. Whole blood donations can be completed safely every 8 weeks (56 days) to allow iron levels to safely recover.
                             </p>
                         </div>
                     </div>
 
-                    <div className="lg:col-span-7 bg-surface/40 backdrop-blur-2xl rounded-[2.5rem] border border-white/5 p-8 md:p-12 relative flex flex-col justify-between overflow-hidden shadow-2xl">
+                    <div className="lg:col-span-7 bg-surface-2 rounded-2xl border border-white/5 p-8 md:p-10 relative flex flex-col justify-between overflow-hidden">
                         <div className="absolute -top-32 -right-32 w-96 h-96 bg-donor/5 rounded-full blur-3xl pointer-events-none"></div>
 
                         <div className="space-y-8 relative z-10">
@@ -155,23 +155,23 @@ const BloodInfoSection = () => {
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-white/5">
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-3">
-                                        <span className="text-6xl font-black text-white italic tracking-tighter leading-none">{activeData.type}</span>
-                                        <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest border ${getBadgeStyles(activeData.badge)}`}>
+                                        <span className="text-5xl font-bold text-white tracking-tight leading-none">{activeData.type}</span>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${getBadgeStyles(activeData.badge)}`}>
                                             {activeData.label}
                                         </span>
                                     </div>
-                                    <p className="text-sm font-black uppercase tracking-widest text-text-dim">
-                                        Rarity: <span className="text-white italic">{activeData.rarity}</span>
+                                    <p className="text-sm font-medium text-text-dim">
+                                        Rarity: <span className="text-white">{activeData.rarity}</span>
                                     </p>
                                 </div>
-                                <div className="w-16 h-16 rounded-2xl bg-donor/10 flex items-center justify-center border border-donor/20 shadow-inner">
+                                <div className="w-14 h-14 rounded-xl bg-donor/10 flex items-center justify-center border border-donor/20">
                                     <Droplet className="w-8 h-8 text-donor animate-pulse" />
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
                                 <div className="space-y-4">
-                                    <h4 className="text-xs font-black uppercase tracking-[0.2em] text-highlight flex items-center gap-2">
+                                    <h4 className="text-xs font-semibold uppercase tracking-wider text-highlight flex items-center gap-2">
                                         <ArrowRight className="w-4 h-4 text-highlight" /> Can Donate To
                                     </h4>
                                     <div className="flex flex-wrap gap-2.5">
@@ -186,7 +186,7 @@ const BloodInfoSection = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-4">
-                                    <h4 className="text-xs font-black uppercase tracking-[0.2em] text-highlight flex items-center gap-2">
+                                    <h4 className="text-xs font-semibold uppercase tracking-wider text-highlight flex items-center gap-2">
                                         <ArrowLeft className="w-4 h-4 text-highlight" /> Can Receive From
                                     </h4>
                                     <div className="flex flex-wrap gap-2.5">
@@ -201,12 +201,22 @@ const BloodInfoSection = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-bg/40 border border-white/5 rounded-2xl p-6 flex gap-4 items-start">
+                            <div className="bg-bg/50 border border-white/5 rounded-xl p-5 flex gap-4 items-start">
                                 <Info className="w-5 h-5 text-donor shrink-0 mt-0.5" />
                                 <div className="space-y-1">
-                                    <h5 className="text-xs font-black uppercase tracking-wider text-white">Clinical Profile Note</h5>
-                                    <p className="text-sm text-text-muted leading-relaxed font-medium">{activeData.note}</p>
+                                    <h5 className="text-xs font-bold uppercase tracking-wider text-white">Clinical Profile Note</h5>
+                                    <p className="text-sm text-text-muted leading-relaxed">{activeData.note}</p>
                                 </div>
+                            </div>
+                            <div className="text-right mt-2">
+                                <a 
+                                    href="https://www.redcrossblood.org/donate-blood/blood-types.html" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="text-[10px] font-medium text-text-dim hover:text-white transition-colors underline decoration-white/20 underline-offset-4"
+                                >
+                                    Data verified via American Red Cross medical standards
+                                </a>
                             </div>
                         </div>
                     </div>

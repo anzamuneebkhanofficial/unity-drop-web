@@ -4,7 +4,7 @@
 import CaptchaField from '@/components/common/CaptchaField';
 import { useAdminAuthStore } from '@/store/auth/authAdminStore';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Mail, Phone, User, MapPin, Loader2 } from 'lucide-react';
+import { Mail, Phone, User, MapPin, Loader2, ArrowLeft } from 'lucide-react';
 import PasswordField from '@/components/common/PasswordField';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -101,6 +101,10 @@ const AdminRegister = () => {
 
   return (
     <div className="flex min-h-screen bg-bg text-white overflow-hidden relative">
+      <Link href="/" className="absolute top-6 left-6 z-50 flex items-center gap-2 text-text-dim hover:text-white transition-colors bg-surface-2/50 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 hover:border-white/30">
+         <ArrowLeft className="w-4 h-4" />
+         <span className="text-xs font-bold uppercase tracking-wider">Back to Home</span>
+      </Link>
       {isLimitReached && (
         <div className="absolute top-0 left-0 w-full bg-red-600 text-white font-bold text-center py-3 z-50 shadow-lg">
           Admin quota is full. Registration is disabled. Please use the{' '}

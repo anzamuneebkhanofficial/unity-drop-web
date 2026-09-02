@@ -36,7 +36,7 @@ export default function Sidebar({ menu, user, basePath = '/', onLogout, isOpen =
   const toggleOpen = (id) => setOpenIds((prev) => ({ ...prev, [id]: !prev[id] }));
   const handleActive = (id) => setActiveId(id);
   return (
-    <aside className={`min-h-screen sticky top-0 w-[80px] sm:w-[90px] md:w-[260px] lg:w-[280px] flex flex-col bg-surface text-text-muted border-r border-white/5 shadow-[10px_0_30px_rgba(0,0,0,0.5)] z-[1000] lg:translate-x-0 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+    <aside className={`h-full sticky top-0 w-[80px] sm:w-[90px] md:w-[260px] lg:w-[280px] flex flex-col bg-surface text-text-muted border-r border-white/5 shadow-[10px_0_30px_rgba(0,0,0,0.5)] z-[1000] lg:translate-x-0 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       } fixed lg:sticky`}>
       <div className="md:hidden flex flex-col h-full w-full">
         <div className="flex-shrink-0 px-2 py-2 border-b border-white/5 flex items-center justify-between">

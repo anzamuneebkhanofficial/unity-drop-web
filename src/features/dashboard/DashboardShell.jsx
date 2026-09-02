@@ -16,7 +16,7 @@ export default function DashboardShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen overflow-hidden bg-[var(--bg)]">
+    <div className="flex h-screen overflow-hidden bg-[var(--bg)]">
       {!sidebarOpen && (
         <button
           onClick={() => setSidebarOpen(true)}

@@ -23,49 +23,44 @@ const HowItWorksSection = () => {
     ];
 
     return (
-        <section id="howitworks" className="py-28 bg-bg border-t border-white/5 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(var(--donor-hex),0.03),transparent_60%)]"></div>
+        <section id="howitworks" className="py-32 bg-bg border-t border-white/5 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(var(--donor-hex),0.02),transparent_60%)] pointer-events-none"></div>
 
-            <div className="container mx-auto px-6 relative z-10">
-                <div className="text-center mb-24">
-                    <span className="text-donor font-black tracking-[0.3em] uppercase text-xs mb-3 block">Simple Steps</span>
-                    <h2 className="text-4xl md:text-6xl font-black text-white mb-6 italic tracking-tighter uppercase">
+            <div className="container mx-auto px-6 relative z-10 max-w-7xl">
+                <div className="text-center mb-20">
+                    <span className="text-donor font-semibold tracking-wider uppercase text-xs mb-4 block">Simple Steps</span>
+                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight">
                         How It <span className="text-highlight">Works</span>
                     </h2>
-                    <p className="text-lg text-text-muted mt-4 max-w-2xl mx-auto font-medium">
+                    <p className="text-lg text-text-dim mt-4 max-w-2xl mx-auto">
                         A simple and fast way to connect donors and patients when it matters most.
                     </p>
                 </div>
 
-                <div className="relative max-w-6xl mx-auto">
-                    <div className="hidden lg:block absolute top-[40px] left-[15%] right-[15%] z-0">
+                <div className="relative max-w-5xl mx-auto">
+                    <div className="hidden lg:block absolute top-[40px] left-[20%] right-[20%] z-0">
                         <div className="flex justify-between items-center w-full">
                             <div className="flex-1 px-8">
-                                <svg className="w-full h-8 text-white/10" viewBox="0 0 200 20" fill="none">
-                                    <path d="M0 10 H180 M180 10 L170 5 M180 10 L170 15" stroke="currentColor" strokeWidth="2" strokeDasharray="8 8" className="animate-[shimmer_10s_infinite_linear]" />
-                                </svg>
+                                <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
                             </div>
                             <div className="flex-1 px-8">
-                                <svg className="w-full h-8 text-white/10" viewBox="0 0 200 20" fill="none">
-                                    <path d="M0 10 H180 M180 10 L170 5 M180 10 L170 15" stroke="currentColor" strokeWidth="2" strokeDasharray="8 8" className="animate-[shimmer_10s_infinite_linear]" />
-                                </svg>
+                                <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="relative grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-20 z-10">
+                    <div className="relative grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16 z-10">
                         {steps.map((step) => (
-                            <div key={step.id} className="text-center group">
-                                <div className="relative mb-10 inline-block">
-                                    <div className="w-20 h-20 bg-surface-2 border-2 border-white/10 rounded-3xl flex items-center justify-center text-white text-3xl font-black italic shadow-2xl group-hover:bg-donor group-hover:border-donor/50 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6">
+                            <div key={step.id} className="text-center group flex flex-col items-center">
+                                <div className="mb-8 relative">
+                                    <div className="w-20 h-20 bg-surface-2 border border-white/10 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-sm transition-all duration-300 group-hover:border-donor/50 group-hover:bg-surface-3">
                                         0{step.id}
                                     </div>
-                                    <div className="absolute -inset-4 bg-donor/20 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                                 </div>
-                                <h3 className="text-2xl font-black text-white mb-5 uppercase tracking-tighter italic group-hover:text-highlight transition-colors">
+                                <h3 className="text-xl font-bold text-white mb-4 tracking-tight group-hover:text-highlight transition-colors">
                                     {step.title}
                                 </h3>
-                                <p className="text-text-muted leading-relaxed font-medium">
+                                <p className="text-text-muted leading-relaxed text-sm max-w-[280px]">
                                     {step.description}
                                 </p>
                             </div>
