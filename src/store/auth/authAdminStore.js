@@ -43,9 +43,6 @@ export const useAdminAuthStore = create(
           const res = await apiWrapper.post('/admin/register', payload);
           const data = res.data;
           if (data.success && data.data) {
-            set({
-              user: data.data,
-            });
             return data.data;
           }
           else {

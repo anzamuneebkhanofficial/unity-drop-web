@@ -94,6 +94,9 @@ const AdminRegister = () => {
     const result = await registerAdmin(data, captchaToken);
     if (result) {
       router.replace('/admin/email-verify');
+    } else {
+      const err = useAdminAuthStore.getState().error;
+      if (err) toast.error(err);
     }
   };
 

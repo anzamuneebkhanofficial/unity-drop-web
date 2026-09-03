@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { useDonorAuthStore } from '@/store/auth/authDonorStore';
 import { usePatientAuthStore } from '@/store/auth/authPatientStore';
 import { useAdminAuthStore } from '@/store/auth/authAdminStore';
+import Cookies from 'js-cookie';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -48,18 +49,23 @@ const Header = () => {
   let activeUser = null;
   let role = null;
   let logoutFunc = null;
-  if (donorUser) {
-    activeUser = donorUser;
-    role = 'Donor';
-    logoutFunc = donorLogout;
-  } else if (patientUser) {
-    activeUser = patientUser;
-    role = 'Patient';
-    logoutFunc = patientLogout;
-  } else if (adminUser) {
-    activeUser = adminUser;
-    role = adminUser?.isSuperAdmin ? 'Super Admin' : 'Admin';
-    logoutFunc = adminLogout;
+
+  const userRoleCookie = isMounted && typeof document !== 'undefined' ? Cookies.get('role')?.toLowerCase() : null;
+
+  if (userRoleCookie) {
+    if (donorUser && userRoleCookie === 'donor') {
+      activeUser = donorUser;
+      role = 'Donor';
+      logoutFunc = donorLogout;
+    } else if (patientUser && userRoleCookie === 'patient') {
+      activeUser = patientUser;
+      role = 'Patient';
+      logoutFunc = patientLogout;
+    } else if (adminUser && userRoleCookie === 'admin') {
+      activeUser = adminUser;
+      role = adminUser?.isSuperAdmin ? 'Super Admin' : 'Admin';
+      logoutFunc = adminLogout;
+    }
   }
   // console.log("admin ??:", adminUser?.fullName);
   const isSuperAdmin = role === 'Super Admin';
