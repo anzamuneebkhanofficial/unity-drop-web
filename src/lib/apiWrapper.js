@@ -7,7 +7,7 @@ const recentToasts = new Map();
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_Backend_URL,
   withCredentials: true,
-  timeout: 15000,
+  timeout: 45000,
   headers: { 'Content-Type': 'application/json' },
 });
 apiClient.interceptors.request.use((config) => {
