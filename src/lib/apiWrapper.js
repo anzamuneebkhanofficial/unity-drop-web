@@ -1,45 +1,57 @@
-
 import axios from 'axios';
 import { toast } from 'sonner';
 import NProgress from 'nprogress';
+import { performFullCleanup } from './authHelpers';
+
 const TOAST_DEBOUNCE_MS = 1500;
 const recentToasts = new Map();
+
+// Track concurrent active requests to prevent progress bar race conditions
+let activeRequests = 0;
+const startProgress = () => {
+  if (activeRequests === 0) {
+    NProgress.start();
+  }
+  activeRequests++;
+};
+
+const stopProgress = () => {
+  activeRequests = Math.max(0, activeRequests - 1);
+  if (activeRequests === 0) {
+    NProgress.done();
+  }
+};
+
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_Backend_URL,
   withCredentials: true,
-  timeout: 45000,
   headers: { 'Content-Type': 'application/json' },
 });
+
+// Request Interceptor: starts progress without any artificial blocking or delays
 apiClient.interceptors.request.use((config) => {
-  if (typeof navigator !== 'undefined' && !navigator.onLine) {
-    toast.error(
-      'Your internet connection is offline. Please check your network and try again.',
-      { id: 'offline-error' }
-    );
-    return Promise.reject(Object.assign(new Error('ConnectionOffline'), { _handled: true }));
-  }
-  NProgress.start();
+  startProgress();
   return config;
 });
+
 let routerRef = null;
 export const setApiRouter = (router) => {
   routerRef = router;
 };
-const clearAuthCookies = () => {
-  const expired = 'expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-  document.cookie = `is_auth=; ${expired}`;
-  document.cookie = `role=; ${expired}`;
-  document.cookie = `accessToken=; ${expired}`;
-};
+
 const getRoleCookie = () =>
-  document.cookie
-    .split('; ')
-    .find((row) => row.startsWith('role='))
-    ?.split('=')[1]
-    ?.toLowerCase();
+  typeof document !== 'undefined'
+    ? document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('role='))
+        ?.split('=')[1]
+        ?.toLowerCase()
+    : null;
+
+// Response Interceptor: handles success, cleanup, and standardized error responses
 apiClient.interceptors.response.use(
   (response) => {
-    NProgress.done();
+    stopProgress();
     const { data, config } = response;
     if (data?.message && typeof data.message === 'string' && data.message.trim()) {
       const method = config.method?.toLowerCase();
@@ -60,14 +72,17 @@ apiClient.interceptors.response.use(
   },
 
   (error) => {
-    NProgress.done();
+    stopProgress();
     if (error._handled) return Promise.reject(error);
     if (axios.isCancel(error)) return Promise.reject(error);
+
     const message =
       error.response?.data?.message ||
       error.response?.data?.error ||
       error.response?.data?.errors?.[0]?.msg ||
       'An unexpected error occurred';
+
+    // 401 Unauthorized handling: clean state and redirect to appropriate login route
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
         const path = window.location.pathname;
@@ -83,8 +98,7 @@ apiClient.interceptors.response.use(
         } else if (role === 'patient' || path.startsWith('/patient')) {
           targetLogin = '/patient/login';
         }
-        localStorage.clear();
-        clearAuthCookies();
+        performFullCleanup();
         const finalUrl = `${targetLogin}?msg=${encodeURIComponent('Session Expired. Please login again.')}`;
         if (routerRef) {
           routerRef.push(finalUrl);
@@ -94,20 +108,7 @@ apiClient.interceptors.response.use(
       }
       return Promise.reject(error);
     }
-    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-      toast.error(
-        'Your internet connection is very weak or disconnected. The request timed out. Please check your connection.',
-        { id: 'timeout-error', duration: 5000 }
-      );
-      return Promise.reject(error);
-    }
-    if (error.message === 'Network Error') {
-      toast.error(
-        'Network Error: Cannot reach the UnityDrop server. Please check your connection.',
-        { id: 'network-error', duration: 5000 }
-      );
-      return Promise.reject(error);
-    }
+
     const isMutation = error.config?.method?.toLowerCase() !== 'get';
     const shouldToast =
       error.config?.showErrorToast !== false &&
@@ -123,6 +124,7 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 const apiWrapper = {
   get: (url, config = {}) => {
     config.params = { ...config.params, _t: Date.now() };
