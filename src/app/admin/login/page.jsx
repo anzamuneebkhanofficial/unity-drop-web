@@ -38,10 +38,6 @@ const AdminLoginPage = () => {
       }
     }
   }, [resetMessages]);
-  // Prefetch dashboard in background so redirect is instantaneous after login
-  useEffect(() => {
-    router.prefetch('/admin/dashboard');
-  }, [router]);
   const {
     handleSubmit,
     control,
@@ -61,8 +57,10 @@ const AdminLoginPage = () => {
     const result = await login(data.email, data.password, captchaToken);
     if (result) {
       setIsNavigating(true);
+      router.refresh();
       router.replace('/admin/dashboard');
     } else {
+      setIsNavigating(false);
       const { error: storeError } = useAdminAuthStore.getState();
       if (storeError) {
         if (storeError.toLowerCase().includes('pending')) {

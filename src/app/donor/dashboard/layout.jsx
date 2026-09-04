@@ -65,18 +65,13 @@ export default function DonorLayout({ children }) {
     avatar: user?.gender === 'Male' ? BoyAvatar : GirlAvatar,
   };
 
-  // Prefetch login route so logout transition is instant and smooth
-  useEffect(() => {
-    router.prefetch('/donor/login');
-  }, [router]);
-
-  // Safe logout with Next.js router.replace (smooth SPA transition, no page reload)
   const handleLogout = useCallback(async () => {
     try {
       await donorLogout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      router.refresh();
       router.replace('/donor/login');
     }
   }, [donorLogout, router]);

@@ -81,8 +81,8 @@ const Header = () => {
           toast.success(logoutMsg, { id: 'logout-success', duration: 3500 });
         }
       }
-      router.push('/');
       router.refresh();
+      router.push('/');
     }
   };
   const getDashboardLink = () => {

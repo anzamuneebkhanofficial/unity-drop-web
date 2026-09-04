@@ -42,10 +42,7 @@ const DonorLoginPage = () => {
     }
   }, [resetMessages]);
 
-  // Prefetch dashboard in background so redirect is instantaneous after login
-  useEffect(() => {
-    router.prefetch('/donor/dashboard');
-  }, [router]);
+
 
   const {
     handleSubmit,
@@ -67,8 +64,10 @@ const DonorLoginPage = () => {
     const result = await login(data.email, data.password, captchaToken);
     if (result) {
       setIsNavigating(true);
+      router.refresh();
       router.replace('/donor/dashboard');
     } else {
+      setIsNavigating(false);
       const { error: storeError } = useDonorAuthStore.getState();
       if (storeError) {
         toast.error(storeError);

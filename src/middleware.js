@@ -29,7 +29,7 @@ export function middleware(req) {
   const role = req.cookies.get('role')?.value;
   const token = req.cookies.get('accessToken')?.value;
   const is_auth = req.cookies.get('is_auth')?.value;
-  const isAuthenticated = !!(role && token && is_auth);
+  const isAuthenticated = Boolean(role && (token || is_auth));
   const isPublic = PUBLIC_ROUTES.some((route) =>
     route instanceof RegExp ? route.test(pathname) : route === pathname
   );

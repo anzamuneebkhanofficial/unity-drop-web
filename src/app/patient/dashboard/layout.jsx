@@ -57,18 +57,13 @@ export default function PatientLayout({ children }) {
     avatar: user?.gender === 'Male' ? BoyAvatar : GirlAvatar,
   };
 
-  // Prefetch login route so logout transition is instant and smooth
-  useEffect(() => {
-    router.prefetch('/patient/login');
-  }, [router]);
-
-  // Safe logout with Next.js router.replace (smooth SPA transition, no page reload)
   const handleLogout = useCallback(async () => {
     try {
       await patientLogout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      router.refresh();
       router.replace('/patient/login');
     }
   }, [patientLogout, router]);

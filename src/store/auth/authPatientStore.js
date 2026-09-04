@@ -96,7 +96,11 @@ export const usePatientAuthStore = create(
           }, { showToast: false });
           const data = res.data;
           if (data?.status === true && data?.user) {
-            Cookies.set('role', data?.user?.role, { expires: 1 });
+            Cookies.set('role', data?.user?.role, { expires: 1, path: '/' });
+            Cookies.set('is_auth', 'true', { expires: 1, path: '/' });
+            if (data.authCheck && data.authCheck.accessToken) {
+              Cookies.set('accessToken', data.authCheck.accessToken, { expires: 1, path: '/' });
+            }
             if (typeof sessionStorage !== 'undefined') {
               sessionStorage.setItem('login_success', data.message || 'Patient logged in successfully');
             }

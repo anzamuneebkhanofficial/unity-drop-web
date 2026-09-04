@@ -54,6 +54,7 @@ export default function DashboardNotice({ role = 'patient' }) {
       document.cookie = `${key}=; expires=${new Date(0).toUTCString()}; path=/`;
     });
     const loginRoute = ROLE_LOGIN[normalizedRole] ?? '/login';
+    router.refresh();
     router.replace(`${loginRoute}?msg=${encodeURIComponent('Session reset manually.')}`);
   };
   return (

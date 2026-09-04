@@ -43,10 +43,7 @@ const PatientLoginPage = () => {
     }
   }, [resetMessages]);
 
-  // Prefetch dashboard in background so redirect is instantaneous after login
-  useEffect(() => {
-    router.prefetch('/patient/dashboard');
-  }, [router]);
+
 
   const {
     handleSubmit,
@@ -70,8 +67,10 @@ const PatientLoginPage = () => {
 
     if (result) {
       setIsNavigating(true);
+      router.refresh();
       router.replace('/patient/dashboard');
     } else {
+      setIsNavigating(false);
       const { error: storeError } = usePatientAuthStore.getState();
       if (storeError) {
         toast.error(storeError);
