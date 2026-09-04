@@ -182,19 +182,29 @@ export const useDonorAuthStore = create(
         }
       },
       logout: async () => {
-        performFullCleanup();
-        set({
-          user: null,
-          DonorCaught: null,
-          requests: [],
-          patients: [],
-          loading: false,
-          error: null,
-          success: null,
-        });
-        apiWrapper.post('/donor/donor-logout', {}).catch((err) => {
-          console.warn('Asynchronous donor logout API call failed:', err);
-        });
+        try {
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('logout_success', 'Donor logged out successfully');
+          }
+          await apiWrapper.post(
+            '/donor/donor-logout',
+            {},
+            { showToast: false, showErrorToast: false }
+          );
+        } catch (err) {
+          console.warn('Donor logout API notice:', err);
+        } finally {
+          performFullCleanup();
+          set({
+            user: null,
+            DonorCaught: null,
+            requests: [],
+            patients: [],
+            loading: false,
+            error: null,
+            success: null,
+          });
+        }
 
         return true;
       },

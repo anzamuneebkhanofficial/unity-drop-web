@@ -21,15 +21,27 @@ const AdminLoginPage = () => {
   const { login, loading, success, resetMessages } = useAdminAuthStore();
   const [captchaToken, setCaptchaToken] = useState('');
   const [isNavigating, setIsNavigating] = useState(false);
-  // Clean up store messages on mount
+  // Clean up store messages and display pending logout/session toasts on mount
   useEffect(() => {
     resetMessages();
-  }, [resetMessages]);
-  useEffect(() => {
-    if (success) {
-      router.replace('/admin/dashboard');
+    if (typeof window !== 'undefined') {
+      const logoutMsg = sessionStorage.getItem('logout_success');
+      if (logoutMsg) {
+        sessionStorage.removeItem('logout_success');
+        toast.success(logoutMsg, { id: 'logout-success', duration: 3500 });
+      }
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryMsg = urlParams.get('msg');
+      if (queryMsg) {
+        toast.info(queryMsg, { id: 'session-msg', duration: 3500 });
+        window.history.replaceState({}, '', window.location.pathname);
+      }
     }
-  }, [success, router]);
+  }, [resetMessages]);
+  // Prefetch dashboard in background so redirect is instantaneous after login
+  useEffect(() => {
+    router.prefetch('/admin/dashboard');
+  }, [router]);
   const {
     handleSubmit,
     control,
@@ -126,7 +138,7 @@ const AdminLoginPage = () => {
                       {...field}
                       id="email"
                       type="email"
-                      autoComplete="email"
+                      autoComplete="off"
                       placeholder="Enter Verify Email"
                       className="inputField pl-14"
                     />
@@ -147,7 +159,7 @@ const AdminLoginPage = () => {
                   <PasswordField
                     field={field}
                     id="password"
-                    autoComplete="current-password"
+                    autoComplete="new-password"
                     label="Enter Password"
                     placeholder="Enter Your Password"
                     error={errors.password?.message}

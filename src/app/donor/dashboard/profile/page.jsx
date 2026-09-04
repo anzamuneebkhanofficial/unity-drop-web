@@ -13,7 +13,10 @@ import {
   Shield,
   CheckCircle2,
   XCircle,
+  Clock,
+  Activity
 } from 'lucide-react';
+import { fmtDate } from '@/lib/fmtDate';
 import { ProfileSkeleton } from '@/components/ui/Skeletons';
 import DangerZone from '@/components/common/delete-account/DangerZone';
 
@@ -95,6 +98,14 @@ export default function DonorProfileView() {
           />
           <ProfileRow icon={MapPin} label="Location" value={displayValue(user.location)} />
           <ProfileRow icon={Phone} label="Phone Number" value={displayValue(user.phone)} />
+          <ProfileRow
+            icon={user?.availabilityStatus ? CheckCircle2 : XCircle}
+            label="Availability Status"
+            value={user?.availabilityStatus ? 'Available for Donations' : 'Unavailable'}
+            valueClass={user?.availabilityStatus ? 'text-green-500 font-bold italic' : 'text-gray-500 font-bold italic'}
+          />
+          <ProfileRow icon={Clock} label="Account Created" value={fmtDate(user?.createdAt)} />
+          <ProfileRow icon={Activity} label="Last Updated" value={fmtDate(user?.updatedAt)} />
         </div>
       </div>
 

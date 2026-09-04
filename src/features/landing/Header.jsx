@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Heart, Menu, LogIn, UserPlus, LogOut, LayoutDashboard, User, ShieldCheck, X, ChevronRight } from 'lucide-react';
 
 import {
@@ -73,6 +74,13 @@ const Header = () => {
   const handleLogout = async () => {
     if (logoutFunc) {
       await logoutFunc();
+      if (typeof window !== 'undefined') {
+        const logoutMsg = sessionStorage.getItem('logout_success');
+        if (logoutMsg) {
+          sessionStorage.removeItem('logout_success');
+          toast.success(logoutMsg, { id: 'logout-success', duration: 3500 });
+        }
+      }
       router.push('/');
       router.refresh();
     }

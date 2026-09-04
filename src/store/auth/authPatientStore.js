@@ -182,19 +182,29 @@ export const usePatientAuthStore = create(
         }
       },
       logout: async () => {
-        performFullCleanup();
-        set({
-          user: null,
-          PatientCaught: null,
-          donors: [],
-          requests: [],
-          loading: false,
-          error: null,
-          success: null,
-        });
-        apiWrapper.post('/patient/patient-logout', {}).catch((err) => {
-          console.warn('Asynchronous patient logout API call failed:', err);
-        });
+        try {
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('logout_success', 'Patient logged out successfully');
+          }
+          await apiWrapper.post(
+            '/patient/patient-logout',
+            {},
+            { showToast: false, showErrorToast: false }
+          );
+        } catch (err) {
+          console.warn('Patient logout API notice:', err);
+        } finally {
+          performFullCleanup();
+          set({
+            user: null,
+            PatientCaught: null,
+            donors: [],
+            requests: [],
+            loading: false,
+            error: null,
+            success: null,
+          });
+        }
 
         return true;
       },

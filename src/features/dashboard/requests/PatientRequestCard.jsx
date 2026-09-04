@@ -9,15 +9,20 @@ const STATUS_STYLE = {
   Pending: 'text-highlight bg-highlight/10 border-highlight/20 animate-pulse',
 };
 
-function InfoRow({ icon: Icon, label, value, color = 'text-gray-300', isFullWidth = false }) {
+function InfoRow({ icon: Icon, label, value, color = 'text-gray-300', isFullWidth = false, className = '' }) {
   if (!value) return null;
   return (
-    <div className="flex items-center justify-between group/row py-1 transition-all">
-      <div className="flex items-center gap-2.5">
-        <Icon className="h-3.5 w-3.5 text-gray-600 group-hover/row:text-donor transition-colors" />
-        <span className="text-[10px] font-black uppercase text-gray-600 tracking-widest">{label}</span>
+    <div className={`flex items-center justify-between group/row py-1 transition-all gap-3 min-w-0 ${className}`}>
+      <div className="flex items-center gap-2 shrink-0">
+        <Icon className="h-3.5 w-3.5 text-gray-600 group-hover/row:text-donor transition-colors shrink-0" />
+        <span className="text-[10px] font-black uppercase text-gray-600 tracking-widest whitespace-nowrap">{label}</span>
       </div>
-      <span className={`${color} text-xs font-bold tracking-tight text-right truncate ${isFullWidth ? 'max-w-[70%]' : 'max-w-[140px]'}`}>{value}</span>
+      <span
+        className={`${color} text-xs font-bold tracking-tight text-right ${isFullWidth ? 'whitespace-nowrap shrink-0' : 'truncate max-w-[140px]'}`}
+        title={typeof value === 'string' ? value : undefined}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -110,7 +115,9 @@ export default function PatientRequestCard({ request, onUpdateStatus }) {
             <div className="grid grid-cols-2 gap-x-6 gap-y-3.5">
               <InfoRow icon={Activity} label="Patient Age" value={patientAge ? `${patientAge} Years` : 'N/A'} color="text-white" />
               <InfoRow icon={Droplets} label="Bottles Needed" value={bottlesRequired} color="text-white font-black" />
-              <InfoRow icon={Calendar} label="Needed On" value={formattedDate} color="text-white" />
+              <div className="col-span-2 py-1.5 border-y border-white/5">
+                <InfoRow icon={Calendar} label="Needed On" value={formattedDate} color="text-white" isFullWidth={true} />
+              </div>
               <InfoRow icon={MapPin} label="City" value={city} color="text-white" />
               <InfoRow
                 icon={Truck}

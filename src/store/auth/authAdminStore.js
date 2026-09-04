@@ -192,18 +192,28 @@ export const useAdminAuthStore = create(
         }
       },
       logout: async () => {
-        performFullCleanup();
-        set({
-          user: null,
-          AdminCaught: null,
-          feedbacks: [],
-          loading: false,
-          error: null,
-          success: null,
-        });
-        apiWrapper.post('/admin/admin-logout', {}).catch((err) => {
-          console.warn('Asynchronous admin logout API call failed:', err);
-        });
+        try {
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('logout_success', 'Admin logged out successfully');
+          }
+          await apiWrapper.post(
+            '/admin/admin-logout',
+            {},
+            { showToast: false, showErrorToast: false }
+          );
+        } catch (err) {
+          console.warn('Admin logout API notice:', err);
+        } finally {
+          performFullCleanup();
+          set({
+            user: null,
+            AdminCaught: null,
+            feedbacks: [],
+            loading: false,
+            error: null,
+            success: null,
+          });
+        }
 
         return true;
       },

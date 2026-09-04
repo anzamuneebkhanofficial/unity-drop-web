@@ -157,7 +157,7 @@ const PatientRegister = () => {
                     {...field}
                     id="fullName"
                     type="text"
-                    autoComplete="name"
+                    autoComplete="off"
                     disabled={isFormDisabled}
                     placeholder="Enter Full Name"
                     className="inputField pl-14"
@@ -176,7 +176,7 @@ const PatientRegister = () => {
                     {...field}
                     id="email"
                     type="email"
-                    autoComplete="email"
+                    autoComplete="off"
                     disabled={isFormDisabled}
                     placeholder="Enter Email"
                     className="inputField pl-14"
@@ -256,7 +256,7 @@ const PatientRegister = () => {
                     {...field}
                     id="phone"
                     type="tel"
-                    autoComplete="tel"
+                    autoComplete="off"
                     disabled={isFormDisabled}
                     placeholder="Phone Number"
                     className="inputField pl-14"
@@ -297,7 +297,7 @@ const PatientRegister = () => {
                   <textarea
                     {...field}
                     id="address"
-                    autoComplete="street-address"
+                    autoComplete="off"
                     rows={2}
                     disabled={isFormDisabled}
                     placeholder="Your Address (Optional)"

@@ -145,12 +145,13 @@ export default function PatientList() {
                   <th className="px-8 py-6 text-[10px] font-black text-text-dim uppercase tracking-[0.3em]">Full Name</th>
                   <th className="px-8 py-6 text-[10px] font-black text-text-dim uppercase tracking-[0.3em]">Blood Group</th>
                   <th className="px-8 py-6 text-[10px] font-black text-text-dim uppercase tracking-[0.3em]">Location</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-text-dim uppercase tracking-[0.3em]">Availability</th>
                   <th className="px-8 py-6 text-[10px] font-black text-text-dim uppercase tracking-[0.3em] text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.03]">
                 {tableLoading ? (
-                  <tr><td colSpan={4} className="py-24 text-center"><MiniSpinner size={40} className="text-donor mx-auto" /></td></tr>
+                  <tr><td colSpan={5} className="py-24 text-center"><MiniSpinner size={40} className="text-donor mx-auto" /></td></tr>
                 ) : patients.length > 0 ? (
                   patients.map((patient, idx) => (
                     <tr key={patient._id} style={{ animationDelay: `${idx * 30}ms` }} className="group hover:bg-white/[0.02] transition-colors animate-fade-up opacity-0">
@@ -159,6 +160,15 @@ export default function PatientList() {
                       <td className="px-8 py-5 text-xs text-gray-400 font-bold uppercase tracking-tighter break-words whitespace-normal max-w-[220px] min-w-[150px]">
                         {patient.location || 'Not set'}
                       </td>
+                      <td className="px-8 py-5">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${patient.availabilityStatus ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-gray-500/10 border border-gray-500/20 text-gray-400'}`}>
+                          {patient.availabilityStatus ? (
+                            <><CheckCircle className="w-3.5 h-3.5" /> Available</>
+                          ) : (
+                            <><XCircle className="w-3.5 h-3.5" /> Unavailable</>
+                          )}
+                        </span>
+                      </td>
                       <td className="px-8 py-5 text-center flex justify-center gap-2">
                         <button onClick={() => handleView(patient._id)} className="p-2 bg-blue-500/10 rounded-lg text-blue-500"><Eye className="w-4 h-4" /></button>
                         {canDelete && <button onClick={() => { setDeleteTarget({ id: patient._id, name: patient.fullName }); setIsDeleteModalOpen(true); }} className="p-2 bg-red-500/10 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>}
@@ -166,7 +176,7 @@ export default function PatientList() {
                     </tr>
                   ))
                 ) : (
-                  <tr><td colSpan={4} className="py-24 text-center text-gray-500 text-[10px] uppercase font-black">No patients found</td></tr>
+                  <tr><td colSpan={5} className="py-24 text-center text-gray-500 text-[10px] uppercase font-black">No patients found</td></tr>
                 )}
               </tbody>
             </table>
@@ -205,7 +215,13 @@ export default function PatientList() {
                   />
                   <InfoDetailBox icon={Phone} label="Phone" value={selectedPatient.phone} />
                   <InfoDetailBox icon={MapPin} label="Location / City" value={selectedPatient.location} />
-                  <InfoDetailBox icon={Clock} label="Registered On" value={fmtDate(selectedPatient.createdAt)} />
+                  <InfoDetailBox icon={Clock} label="Account Created" value={fmtDate(selectedPatient.createdAt)} />
+                  <InfoDetailBox
+                    icon={selectedPatient?.availabilityStatus ? CheckCircle : XCircle}
+                    label="Availability Status"
+                    value={selectedPatient?.availabilityStatus ? 'Available' : 'Unavailable'}
+                    color={selectedPatient?.availabilityStatus ? 'text-green-400 font-bold' : 'text-gray-400 font-bold'}
+                  />
                   <InfoDetailBox icon={Map} label="Full Address" value={selectedPatient.address} span={3} />
                   <InfoDetailBox icon={Hospital} label="Hospital Name" value={selectedPatient.hospitalName} />
                   <InfoDetailBox icon={MapPin} label="Hospital Location" value={selectedPatient.hospitalLocation} />

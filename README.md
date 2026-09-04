@@ -1,99 +1,170 @@
-# Unity Drop Web - Frontend Application Portal Manual
+# Unity Drop Web — Frontend Application Manual
 
-Unity Drop Web is the client-side portal for the Unity Drop Blood Donation Management System. Built using high-performance web frameworks, it provides role-specific dashboards (Admin, Donor, Patient) that connect users through clean, highly interactive interfaces.
-
----
-
-## ⚙️ Core Technology Stack
-
-* **Framework**: **Next.js 15** with **React 19** utilizing React Server Components (RSC) and fast dev execution via **Turbopack**.
-* **Styling**: **Tailwind CSS v4** combined with HSL CSS variables, clean typography, and smooth transitions powered by **Framer Motion**.
-* **State Management**: **Zustand** for lightweight, persistent global reactive state.
-* **Form Controls**: **React Hook Form** paired with **Yup** schemas for strong schema validation.
-* **API Communication**: **Axios** client configured with global interceptors to handle secure httpOnly cookie session context.
-* **Visualizations**: Interactive system statistics charts powered by **Recharts**.
-* **Transitions**: **NextTopLoader** providing deterministic visual page-load feedback.
-* **Security Checks**: **Google ReCAPTCHA v2** integration on registration and login.
-* **Toasts**: **Sonner** toast notices for clean and interactive system alerts.
+**Unity Drop Web** is the client-side portal for the Unity Drop Blood Donation Management System. Built on **Next.js 15** with **React 19**, it delivers three role-specific dashboards (Admin, Donor, Patient) with a premium, animated, mobile-first interface.
 
 ---
 
-## 📂 Frontend Directory Structure
+## ⚙️ Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 15 (App Router + Turbopack) |
+| UI Library | React 19 (with React Server Components) |
+| Styling | Tailwind CSS v4 + HSL CSS variables |
+| Animations | Framer Motion |
+| State Management | Zustand (persistent global state) |
+| Form Handling | React Hook Form + Yup validation schemas |
+| API Communication | Axios (with global interceptors for HttpOnly cookie sessions) |
+| Charts | Recharts (admin analytics dashboard) |
+| Toast Notifications | Sonner |
+| Security | Google ReCAPTCHA v2 (client-side integration) |
+| Email Bridge | Nodemailer via internal Next.js API routes (for Vercel deployment) |
+| Page Transitions | nextjs-toploader |
+
+---
+
+## 📂 Project Directory Structure
 
 ```
 unity-drop-web/
-├── public/                 # Static assets, lottie files, logos
+├── public/                         # Static assets (images, lottie animations, icons)
 ├── src/
-│   ├── app/                # Next.js App Router (symmetrical routes & layouts)
-│   │   ├── admin/          # Admin registration, login, verification, and dashboard
-│   │   ├── donor/          # Donor registration, login, verification, and dashboard
-│   │   ├── patient/        # Patient registration, login, verification, and dashboard
-│   │   ├── public-feedback/# Public feedback submission route
-│   │   ├── globals.css     # CSS style overrides and Tailwind v4 definitions
-│   │   ├── layout.js       # Main app layout, font loading, progress bar
-│   │   └── page.js         # Public landing page mapping
-│   ├── components/         # Reusable UI systems
-│   │   ├── common/         # CaptchaField, SystemHealthCard, PasswordField, InfoDetailBox
-│   │   ├── ui/             # Dialogs, Dropdowns, Cards, Skeletons
-│   │   └── providers/      # Context providers (e.g. Sonner Toast provider)
-│   ├── features/           # Symmetrical visual modules
-│   │   ├── dashboard/      # Sidebar layout, charts, requests dashboard notice
-│   │   └── landing/        # Landing page sections (BloodInfoSection, FAQSection)
-│   ├── hooks/              # Custom hooks (e.g. useNetworkHealth, useDebounce)
-│   ├── lib/                # Axios interceptors and helper utils
-│   ├── store/              # Zustand global store files (e.g. useAuthStore)
-│   └── middleware.js       # Route protection middleware intercepting sessions
-├── package.json            # Package dependencies and Turbopack scripts
-└── next.config.mjs         # Next.js configurations
+│   ├── app/                        # Next.js App Router
+│   │   ├── admin/
+│   │   │   ├── (auth)/             # Admin register, login, verify-email pages
+│   │   │   └── dashboard/          # Admin dashboard (donors, patients, admins, feedbacks, stats)
+│   │   ├── donor/
+│   │   │   ├── (auth)/             # Donor register, login, verify-email pages
+│   │   │   └── dashboard/          # Donor dashboard (patients, requests, profile, stats)
+│   │   ├── patient/
+│   │   │   ├── (auth)/             # Patient register, login, verify-email pages
+│   │   │   └── dashboard/          # Patient dashboard (donors, requests, profile, stats)
+│   │   ├── public-feedback/        # Public landing page feedback submission form
+│   │   ├── api-internal-email/     # Internal Next.js API route (email bridge for Vercel)
+│   │   ├── globals.css             # Global CSS, Tailwind v4 directives, custom tokens
+│   │   ├── layout.js               # Root layout (font loading, providers, top loader)
+│   │   └── page.js                 # Public landing page
+│   ├── components/
+│   │   ├── common/                 # CaptchaField, PasswordField, SystemHealthCard, InfoDetailBox
+│   │   ├── ui/                     # Radix UI primitives (dialogs, dropdowns, cards, skeletons)
+│   │   └── providers/              # Sonner toast provider wrapper
+│   ├── features/
+│   │   ├── dashboard/              # Sidebar, charts, request notice components
+│   │   └── landing/                # Landing page sections (BloodInfoSection, FAQSection, Hero)
+│   ├── hooks/
+│   │   ├── useNetworkHealth.js     # Online/offline browser connection monitor
+│   │   └── useDebounce.js          # Debounce hook for search input fields
+│   ├── lib/
+│   │   └── axios.js                # Axios instance with base URL and interceptors
+│   ├── store/
+│   │   └── auth/
+│   │       ├── authAdminStore.js   # Zustand admin state + API action functions
+│   │       ├── authDonorStore.js   # Zustand donor state + API action functions
+│   │       └── authPatientStore.js # Zustand patient state + API action functions
+│   └── middleware.js               # Next.js route protection (redirects unauthenticated users)
+├── next.config.mjs                 # Next.js config (API proxy rewrites)
+├── package.json
+└── .env.example                    # Environment variable template
 ```
 
 ---
 
-## 💡 Frontend Architecture & Custom Hooks
+## 💡 Architecture & Key Features
 
-### 1. Symmetrical Role-Based Dashboards
-The portal features unique dashboards for each user type, mounted symmetrically under the App Router:
-* **Admin Dashboard (`/admin/dashboard`)**: Displays interactive metrics of users (Admins, Patients, Donors) and active requests, dynamic search/filter panels, and quick controls to approve administrative registrations.
-* **Donor Dashboard (`/donor/dashboard`)**: Allows browsing active blood requests, updating donor health status, tracking coordination requests, and accepting/declining invites with one click.
-* **Patient Dashboard (`/patient/dashboard`)**: Streamlines creating blood request alerts, listing location-compatible donors, and sending coordination requests.
+### 1. Role-Based Protected Dashboards
+Three completely separate authenticated dashboard areas, each with their own layouts and pages:
 
-### 2. Symmetrical Form Validation
-Forms are fully managed with **React Hook Form** to prevent unwanted re-renders, while **Yup** schemas enforce strict validation rules on:
-* **Login Form**: Email format and secure password requirements.
-* **Registration Form**: Valid phone numbers, location strings, and compatible blood groups.
-* **Verification Form**: 6-digit numeric OTP code.
-* **Captcha Check**: Validation of Google ReCAPTCHA v2 token before submission.
+| Dashboard | URL | Features |
+|---|---|---|
+| **Admin** | `/admin/dashboard` | User management, analytics charts, admin approvals, feedback moderation |
+| **Donor** | `/donor/dashboard` | Patient browsing, request management (Accept/Reject), profile, stats |
+| **Patient** | `/patient/dashboard` | Donor search, blood request dispatch, request tracking, profile |
 
-### 3. Lightweight Online Monitoring
-* **`useNetworkHealth` Hook**: Monitors the browser's online/offline connection state. It triggers a single warning toast if the user goes offline and a success toast when the connection is restored, without heavy database polling.
-* **`SystemHealthCard` Component**: Placed in dashboard headers to provide real-time connection status feedback.
+Route protection is enforced at the **Next.js middleware level** (`middleware.js`) — unauthenticated users are redirected to the login page before any page renders.
+
+### 2. Global State with Zustand
+Each role has its own Zustand store (`authAdminStore`, `authDonorStore`, `authPatientStore`) that:
+- Holds the authenticated user object in memory
+- Provides all API action functions (fetch, update, delete, etc.)
+- Persists state across page navigations without re-fetching
+
+### 3. Form Validation
+All forms are managed by **React Hook Form** with **Yup** schemas:
+- No unnecessary re-renders during typing
+- Strict validation: email format, phone numbers, blood group values, OTP length
+- ReCAPTCHA v2 token is validated before any form can submit
+
+### 4. Network Health Monitoring
+- **`useNetworkHealth` hook** — Listens to the browser's built-in `online`/`offline` events.
+- Shows a toast warning when the user goes offline.
+- Shows a success toast when the connection is restored.
+- No background polling — zero extra server requests.
+
+### 5. Email Bridge (Vercel Deployment)
+On Vercel, outbound SMTP ports are blocked. The frontend includes an internal API route (`/api-internal-email`) that acts as a secure email relay for the backend, using Nodemailer directly from the Next.js server.
 
 ---
 
 ## 🛠️ Installation & Setup
 
-1. **Install Client Dependencies**:
-   ```bash
-   npm install
-   ```
-2. **Environment Variable Configuration**:
-   Create a `.env` or `.env.local` file at the root of `unity-drop-web`:
-   ```env
-   NEXT_PUBLIC_API_URL=http://localhost:8000
-   NEXT_PUBLIC_APP_NAME="Unity Drop"
-   NEXT_PUBLIC_APP_VERSION=1.0.0
-   NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-google-recaptcha-site-key
-   ```
-3. **Execute Development Environment**:
-   ```bash
-   npm run dev
-   ```
-   *(This starts the local Next.js client at `http://localhost:3000` with fast Turbopack support)*
-4. **Compile Production Bundle**:
-   ```bash
-   npm run build
-   ```
-   *(Validates types, compiles scripts, and generates the optimized production build)*
+### Prerequisites
+- **Node.js** v18 or higher
+- **Unity Drop API** running at `http://localhost:8000` (backend must be started first)
+- **Google ReCAPTCHA v2** site key
+
+### Step 1 — Install Dependencies
+```bash
+npm install
+```
+
+### Step 2 — Configure Environment Variables
+Copy the template and fill in your values:
+```bash
+cp .env.example .env
+```
+
+```env
+# Frontend public URL
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Backend API URL (all /api requests are proxied here)
+NEXT_PUBLIC_Backend_URL=/api
+API_URL=http://localhost:8000
+
+# Google reCAPTCHA v2 (get from console.google.com)
+NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your_recaptcha_site_key_here
+
+# Email Bridge (used for Vercel deployments only)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_gmail_app_password
+INTERNAL_EMAIL_SECRET=unity_drop_internal_email_secret_2026
+```
+
+> **Note:** The `API_URL` and `NEXT_PUBLIC_Backend_URL` are used together. The Next.js config rewrites all `/api/*` requests on the frontend to `http://localhost:8000/*` behind the scenes, so you never expose your backend URL in the browser.
+
+### Step 3 — Start Development Server
+```bash
+npm run dev
+```
+> The portal will be accessible at **`http://localhost:3000`**
+> Powered by **Turbopack** for near-instant hot reloads.
+
+### Step 4 — Build for Production
+```bash
+npm run build
+```
+
+### Step 5 — Start Production Server
+```bash
+npm start
+```
+
+---
+
+## 📄 License
+This project is licensed under the **ISC License**.
 
 ---
 *Maintained under secure, professional development standards.* 🩸

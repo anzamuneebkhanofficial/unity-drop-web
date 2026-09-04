@@ -15,7 +15,10 @@ import {
   XCircle,
   Building2,
   Hospital,
+  Clock,
+  Activity
 } from 'lucide-react';
+import { fmtDate } from '@/lib/fmtDate';
 import { ProfileSkeleton } from '@/components/ui/Skeletons';
 import DangerZone from '@/components/common/delete-account/DangerZone';
 
@@ -92,6 +95,14 @@ export default function PatientProfileView() {
           <ProfileRow icon={MapPin} label="Location" value={displayValue(user.location)} />
           <ProfileRow icon={MapPin} label="Home Address" value={displayValue(user.address)} />
           <ProfileRow icon={Phone} label="Phone Number" value={displayValue(user.phone)} />
+          <ProfileRow
+            icon={user?.availabilityStatus ? CheckCircle2 : XCircle}
+            label="Availability Status"
+            value={user?.availabilityStatus ? 'Available to Receive' : 'Unavailable'}
+            valueClass={user?.availabilityStatus ? 'text-green-500 font-bold italic' : 'text-gray-500 font-bold italic'}
+          />
+          <ProfileRow icon={Clock} label="Account Created" value={fmtDate(user?.createdAt)} />
+          <ProfileRow icon={Activity} label="Last Updated" value={fmtDate(user?.updatedAt)} />
         </div>
       </div>
       <div className="bg-[#0c0c0c] border border-white/5 rounded-xl p-8 md:p-12 shadow-2xl relative">

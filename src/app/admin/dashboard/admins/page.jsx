@@ -170,8 +170,8 @@ export default function AdminManagementList() {
 
   return (
     <>
-      <div className="p-4 sm:p-8 space-y-8 animate-in fade-in duration-700">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-surface border border-highlight/20 p-8 rounded-xl relative overflow-hidden shadow-[0_20px_50px_rgba(var(--highlight-hex),0.1)]">
+      <div className="space-y-6 animate-in fade-in duration-700">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface border border-highlight/20 p-6 rounded-xl relative overflow-hidden shadow-[0_20px_50px_rgba(var(--highlight-hex),0.1)]">
           <div className="absolute inset-0 bg-gradient-to-br from-highlight/5 to-transparent" />
           <div className="space-y-2 relative z-10">
             <div className="flex items-center gap-3">
@@ -193,8 +193,8 @@ export default function AdminManagementList() {
             </div>
           </div>
         </div>
-        <section className="bg-[#0f0f0f]/60 backdrop-blur-xl border border-white/10 p-8 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <section className="bg-[#0f0f0f]/60 backdrop-blur-xl border border-white/10 p-5 sm:p-6 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <ModernInput
               label="Search by Name"
               placeholder="Type admin name..."
@@ -265,20 +265,21 @@ export default function AdminManagementList() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-white/5 bg-white/[0.02]">
-                  <th className="px-6 py-6 text-[10px] font-black text-text-dim uppercase tracking-[0.3em]">Name</th>
-                  <th className="px-6 py-6 text-[10px] font-black text-text-dim uppercase tracking-[0.3em]">Role</th>
-                  <th className="px-6 py-6 text-[10px] font-black text-text-dim uppercase tracking-[0.3em]">Email Status</th>
-                  <th className="px-6 py-6 text-[10px] font-black text-text-dim uppercase tracking-[0.3em]">Approval</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-text-dim uppercase tracking-[0.25em]">Name</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-text-dim uppercase tracking-[0.25em]">Role</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-text-dim uppercase tracking-[0.25em]">Email Status</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-text-dim uppercase tracking-[0.25em]">Approval</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-text-dim uppercase tracking-[0.25em]">Availability</th>
                   {isSuperAdmin && (
-                    <th className="px-6 py-6 text-[10px] font-black text-text-dim uppercase tracking-[0.3em]">Privilege</th>
+                    <th className="px-4 py-4 text-[10px] font-black text-text-dim uppercase tracking-[0.25em]">Privilege</th>
                   )}
-                  <th className="px-6 py-6 text-[10px] font-black text-text-dim uppercase tracking-[0.3em] text-right">Actions</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-text-dim uppercase tracking-[0.25em] text-right w-[110px]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.03]">
                 {tableLoading ? (
                   <tr>
-                    <td colSpan={isSuperAdmin ? 6 : 5} className="py-24 text-center">
+                    <td colSpan={isSuperAdmin ? 7 : 6} className="py-24 text-center">
                       <div className="flex flex-col items-center gap-4">
                         <MiniSpinner size={40} className="text-highlight" />
                         <p className="text-[10px] font-black text-text-dim uppercase tracking-widest animate-pulse">Loading admins...</p>
@@ -292,43 +293,52 @@ export default function AdminManagementList() {
                       style={{ animationDelay: `${idx * 50}ms` }}
                       className={`group hover:bg-white/[0.02] transition-colors animate-fade-up opacity-0 ${admin._id === AdminCaught?._id ? 'bg-highlight/[0.02]' : ''}`}
                     >
-                      <td className="px-6 py-5 max-w-[240px]">
+                      <td className="px-4 py-3 sm:py-3.5 max-w-[220px]">
                         <div className="flex items-center gap-3">
-                          <div className={`h-10 w-10 rounded-xl bg-neutral-900 border ${admin.isSuperAdmin ? 'border-highlight' : 'border-white/5'} flex items-center justify-center font-black ${admin.isSuperAdmin ? 'text-highlight' : 'text-text-dim'} text-sm shrink-0`}>
+                          <div className={`h-9 w-9 rounded-xl bg-neutral-900 border ${admin.isSuperAdmin ? 'border-highlight' : 'border-white/5'} flex items-center justify-center font-black ${admin.isSuperAdmin ? 'text-highlight' : 'text-text-dim'} text-xs shrink-0`}>
                             {admin.fullName.charAt(0)}
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-sm font-black text-white uppercase tracking-tight break-words whitespace-normal">{admin.fullName}</span>
+                              <span className="text-xs font-black text-white uppercase tracking-tight break-words whitespace-normal">{admin.fullName}</span>
                               {admin._id === AdminCaught?._id && <span className="text-[8px] px-1.5 py-0.5 bg-highlight text-black rounded font-black uppercase shrink-0">You</span>}
                             </div>
                             <span className="text-[9px] text-text-dim lowercase tracking-tighter block break-all">{admin.email}</span>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-5">
-                        <div className={`inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${admin.isSuperAdmin ? 'bg-highlight/10 border border-highlight/20 text-highlight' : 'bg-blue-500/10 border border-blue-500/20 text-blue-500'}`}>
+                      <td className="px-4 py-3 sm:py-3.5 whitespace-nowrap">
+                        <div className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${admin.isSuperAdmin ? 'bg-highlight/10 border border-highlight/20 text-highlight' : 'bg-blue-500/10 border border-blue-500/20 text-blue-500'}`}>
                           {admin.isSuperAdmin ? 'Super Admin' : 'Admin'}
                         </div>
                       </td>
-                      <td className="px-6 py-5">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${admin.emailVerified ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
+                      <td className="px-4 py-3 sm:py-3.5 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${admin.emailVerified ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
                           {admin.emailVerified ? (
-                            <><CheckCircle className="w-3.5 h-3.5" /> Verified</>
+                            <><CheckCircle className="w-3 h-3" /> Verified</>
                           ) : (
-                            <><XCircle className="w-3.5 h-3.5" /> Unverified</>
+                            <><XCircle className="w-3 h-3" /> Unverified</>
                           )}
                         </span>
                       </td>
-                      <td className="px-6 py-5">
+                      <td className="px-4 py-3 sm:py-3.5 whitespace-nowrap">
                         {admin.isSuperAdmin ? (
                           <span className="text-[9px] text-highlight font-black uppercase tracking-widest">Auto-Approved</span>
                         ) : (
                           <ApprovalBadge status={admin.approvalStatus || 'pending'} />
                         )}
                       </td>
+                      <td className="px-4 py-3 sm:py-3.5 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${admin.availabilityStatus ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-gray-500/10 border border-gray-500/20 text-gray-400'}`}>
+                          {admin.availabilityStatus ? (
+                            <><CheckCircle className="w-3 h-3" /> Available</>
+                          ) : (
+                            <><XCircle className="w-3 h-3" /> Unavailable</>
+                          )}
+                        </span>
+                      </td>
                       {isSuperAdmin && (
-                        <td className="px-6 py-5">
+                        <td className="px-4 py-3 sm:py-3.5 whitespace-nowrap">
                           {admin.isSuperAdmin ? (
                             <span className="text-[9px] text-highlight font-black uppercase tracking-widest">All Privileges</span>
                           ) : admin.approvalStatus !== 'approved' ? (
@@ -337,7 +347,7 @@ export default function AdminManagementList() {
                             <button
                               onClick={() => handlePrivilege(admin._id, admin.canDelete)}
                               disabled={privilegeLoading === admin._id}
-                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all hover:opacity-80 ${admin.canDelete
+                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all hover:opacity-80 ${admin.canDelete
                                   ? 'bg-purple-500/10 border-purple-500/20 text-purple-400'
                                   : 'bg-blue-500/10 border-blue-500/20 text-blue-400'
                                 }`}
@@ -353,42 +363,42 @@ export default function AdminManagementList() {
                           )}
                         </td>
                       )}
-                      <td className="px-6 py-5">
-                        <div className="flex items-center justify-end gap-2 flex-wrap">
+                      <td className="px-4 py-3 sm:py-3.5">
+                        <div className="grid grid-cols-2 gap-1.5 w-fit ml-auto">
                           <button
                             onClick={() => { setSelectedAdmin(admin); setIsViewOpen(true); }}
-                            className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 hover:bg-blue-500 hover:text-black transition-all"
+                            className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-500 hover:bg-blue-500 hover:text-black transition-all flex items-center justify-center"
                             title="View Admin"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="w-3.5 h-3.5" />
                           </button>
                           {isSuperAdmin && !admin.isSuperAdmin && admin.approvalStatus === 'pending' && (
                             <>
                               <button
                                 onClick={() => handleApproval(admin._id, 'approved')}
                                 disabled={approvalLoading === admin._id}
-                                className="p-2.5 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500 hover:text-black transition-all"
+                                className="p-2 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500 hover:text-black transition-all flex items-center justify-center"
                                 title="Approve Admin"
                               >
-                                {approvalLoading === admin._id ? <MiniSpinner size={16} /> : <CheckCircle className="w-4 h-4" />}
+                                {approvalLoading === admin._id ? <MiniSpinner size={14} /> : <CheckCircle className="w-3.5 h-3.5" />}
                               </button>
                               <button
                                 onClick={() => handleApproval(admin._id, 'rejected')}
                                 disabled={approvalLoading === admin._id}
-                                className="p-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 hover:bg-orange-500 hover:text-black transition-all"
+                                className="p-2 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 hover:bg-orange-500 hover:text-black transition-all flex items-center justify-center"
                                 title="Reject Admin"
                               >
-                                {approvalLoading === admin._id ? <MiniSpinner size={16} /> : <XCircle className="w-4 h-4" />}
+                                {approvalLoading === admin._id ? <MiniSpinner size={14} /> : <XCircle className="w-3.5 h-3.5" />}
                               </button>
                             </>
                           )}
                           {admin._id !== AdminCaught?._id && (
                             <button
                               onClick={() => openDeleteModal(admin)}
-                              className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                              className="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"
                               title="Delete Admin"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           )}
                         </div>
@@ -397,7 +407,7 @@ export default function AdminManagementList() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={isSuperAdmin ? 6 : 5} className="py-24 text-center">
+                    <td colSpan={isSuperAdmin ? 7 : 6} className="py-24 text-center">
                       <div className="flex flex-col items-center gap-4 opacity-50">
                         <AlertCircle className="w-12 h-12 text-gray-700" />
                         <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em]">No admins found</p>
@@ -467,7 +477,13 @@ export default function AdminManagementList() {
                   <InfoDetailBox icon={Phone} label="Phone" value={selectedAdmin?.phone} />
                   <InfoDetailBox icon={MapPin} label="Location" value={selectedAdmin?.location} />
                   <InfoDetailBox icon={User} label="Gender" value={selectedAdmin?.gender} />
-                  <InfoDetailBox icon={Calendar} label="Joined On" value={fmtDate(selectedAdmin?.createdAt)} />
+                  <InfoDetailBox icon={Clock} label="Account Created" value={fmtDate(selectedAdmin?.createdAt)} />
+                  <InfoDetailBox
+                    icon={selectedAdmin?.availabilityStatus ? CheckCircle : XCircle}
+                    label="Availability Status"
+                    value={selectedAdmin?.availabilityStatus ? 'Available' : 'Unavailable'}
+                    color={selectedAdmin?.availabilityStatus ? 'text-green-400 font-bold' : 'text-gray-400 font-bold'}
+                  />
                   <InfoDetailBox icon={Activity} label="Last Updated" value={fmtDate(selectedAdmin?.updatedAt)} />
                 </div>
 

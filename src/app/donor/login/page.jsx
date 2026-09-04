@@ -24,17 +24,28 @@ const DonorLoginPage = () => {
   const [captchaToken, setCaptchaToken] = useState('');
   const [isNavigating, setIsNavigating] = useState(false);
 
-  // Clean up store messages on mount 
+  // Clean up store messages and display pending logout/session toasts on mount 
   useEffect(() => {
     resetMessages();
+    if (typeof window !== 'undefined') {
+      const logoutMsg = sessionStorage.getItem('logout_success');
+      if (logoutMsg) {
+        sessionStorage.removeItem('logout_success');
+        toast.success(logoutMsg, { id: 'logout-success', duration: 3500 });
+      }
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryMsg = urlParams.get('msg');
+      if (queryMsg) {
+        toast.info(queryMsg, { id: 'session-msg', duration: 3500 });
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
   }, [resetMessages]);
 
-  // Success 
+  // Prefetch dashboard in background so redirect is instantaneous after login
   useEffect(() => {
-    if (success) {
-      router.replace('/donor/dashboard');
-    }
-  }, [success, router]);
+    router.prefetch('/donor/dashboard');
+  }, [router]);
 
   const {
     handleSubmit,
@@ -126,7 +137,7 @@ const DonorLoginPage = () => {
                       {...field}
                       id="email"
                       type="email"
-                      autoComplete="email"
+                      autoComplete="off"
                       placeholder="Enter Email Address"
                       className="inputField pl-14"
                     />
@@ -149,7 +160,7 @@ const DonorLoginPage = () => {
                   <PasswordField
                     field={field}
                     id="password"
-                    autoComplete="current-password"
+                    autoComplete="new-password"
                     label="Password"
                     placeholder="Enter Password"
                     error={errors.password?.message}

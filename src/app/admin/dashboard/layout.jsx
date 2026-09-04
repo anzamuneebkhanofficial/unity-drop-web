@@ -59,6 +59,12 @@ export default function AdminLayout({ children }) {
     _id: AdminCaught?._id || '',
     avatar: (AdminCaught?.gender === 'Male') ? BoyAvatar : GirlAvatar,
   };
+  // Prefetch login route so logout transition is instant and smooth
+  useEffect(() => {
+    router.prefetch('/admin/login');
+  }, [router]);
+
+  // Safe logout with Next.js router.replace (smooth SPA transition, no page reload)
   const handleLogout = useCallback(async () => {
     try {
       await adminLogout();

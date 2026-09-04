@@ -12,40 +12,45 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePatientAuthStore } from '@/store/auth/authPatientStore';
 import { GenericSpinner as MiniSpinner } from '@/components/ui/Skeletons';
-import { Mail, MapPin, User, Activity, Droplets, Phone, ShieldAlert, X, ClipboardCheck, ShieldCheck, HeartPulse, Search } from 'lucide-react';
+import { Mail, MapPin, User, Activity, Droplets, Phone, ShieldAlert, X, ClipboardCheck, ShieldCheck, HeartPulse, Search, CheckCircle2, XCircle, Clock, ChevronUp, ChevronDown } from 'lucide-react';
 import InfoDetailBox from '@/components/common/InfoDetailBox';
+import { fmtDate } from '@/lib/fmtDate';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 
 const requestSchema = yup.object().shape({
-  caseDescription: yup.string().required('Reason for blood is required'),
+  caseDescription: yup.string().trim().required('Reason for blood is required'),
   patientAge: yup.number()
-    .transform((value, originalValue) => originalValue === '' ? undefined : value)
+    .transform((value, originalValue) => (originalValue === '' || originalValue === null || originalValue === undefined) ? undefined : Number(originalValue))
     .typeError('Patient age must be an integer')
     .integer('Patient age must be an integer')
     .min(1, 'Patient age must be between 1 and 120')
     .max(120, 'Patient age must be between 1 and 120')
     .required('Patient age is required'),
   bottlesRequired: yup.number()
-    .transform((value, originalValue) => originalValue === '' ? undefined : value)
+    .transform((value, originalValue) => (originalValue === '' || originalValue === null || originalValue === undefined) ? undefined : Number(originalValue))
     .typeError('Bottles required must be an integer')
     .integer('Bottles required must be an integer')
     .min(1, 'Bottles required must be between 1 and 20')
     .max(20, 'Bottles required must be between 1 and 20')
     .required('Bottles required is required'),
-  hospitalName: yup.string().required('Hospital name is required').min(2, 'Hospital name must be at least 2 characters'),
-  city: yup.string().required('City is required').min(2, 'City must be at least 2 characters'),
+  hospitalName: yup.string().trim().required('Hospital name is required').min(2, 'Hospital name must be at least 2 characters'),
+  city: yup.string().trim().required('City is required').min(2, 'City must be at least 2 characters'),
   attendantName: yup.string()
+    .trim()
     .required('Attendant name is required')
     .min(2, 'Attendant name must be at least 2 characters')
+    .max(50, 'Attendant name must not exceed 50 characters')
     .matches(/^[a-zA-Z\s]+$/, 'Attendant name must contain only alphabets and spaces'),
   attendantPhone: yup.string()
+    .trim()
     .required('Attendant phone is required')
-    .matches(/^[0-9]{10,15}$/, 'Attendant phone must contain between 10 and 15 digits only'),
+    .matches(/^(\+?[0-9]{10,15})$/, 'Attendant phone must contain between 10 and 15 digits only'),
   pickAndDrop: yup.string().required('Pick & Drop choice is required'),
   exchangePossibility: yup.string().required('Exchange choice is required'),
   message: yup.string()
+    .trim()
     .required('Message is required')
     .min(10, 'Message must be at least 10 characters long'),
 });
@@ -69,21 +74,68 @@ function ModernInput({ id, label, type = "text", placeholder, value, onChange, i
   );
 }
 
-function ModernRequestInput({ id, label, type = "text", placeholder, value, onChange, icon: Icon = null, disabled = false }) {
+function ModernRequestInput({
+  id,
+  label,
+  type = "text",
+  placeholder,
+  value,
+  onChange,
+  onKeyDown,
+  onPaste,
+  icon: Icon = null,
+  disabled = false,
+  inputMode,
+  maxLength,
+  showStepper = false,
+  onIncrement,
+  onDecrement,
+  className = "",
+  ...rest
+}) {
   return (
     <div className="space-y-3 flex-grow">
       <label htmlFor={id} className="text-[10px] font-black uppercase text-white/80 tracking-[0.2em] ml-1 cursor-pointer">{label}</label>
       <div className="relative group">
-        {Icon && <Icon className="absolute left-7 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-white/20 group-focus-within:text-red-500 transition-all z-10" />}
+        {Icon && <Icon className="absolute left-7 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-white/20 group-focus-within:text-red-500 transition-all z-10 pointer-events-none" />}
         <input
           id={id}
           type={type}
+          inputMode={inputMode}
           placeholder={placeholder}
           disabled={disabled}
-          className={`w-full bg-[#121212] border border-white/10 rounded-lg ${Icon ? 'pl-16' : 'px-8'} py-5 text-sm focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all text-white placeholder:text-white/60 shadow-2xl shadow-inner scrollbar-hide ${disabled ? 'opacity-40 cursor-not-allowed grayscale' : ''}`}
-          value={value}
-          onChange={(e) => !disabled && onChange(e.target.value)}
+          maxLength={maxLength}
+          className={`w-full bg-[#121212] border border-white/10 rounded-lg ${Icon ? 'pl-16' : 'px-8'} ${showStepper ? 'pr-12' : ''} py-5 text-sm focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all text-white placeholder:text-white/60 shadow-2xl shadow-inner scrollbar-hide ${disabled ? 'opacity-40 cursor-not-allowed grayscale' : ''} ${className}`}
+          value={value ?? ''}
+          onChange={(e) => !disabled && onChange && onChange(e.target.value)}
+          onKeyDown={(e) => !disabled && onKeyDown && onKeyDown(e)}
+          onPaste={(e) => !disabled && onPaste && onPaste(e)}
+          {...rest}
         />
+        {showStepper && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center gap-0.5 z-10">
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={onIncrement}
+              disabled={disabled}
+              className="p-1 rounded text-white/40 hover:text-white hover:bg-white/10 active:scale-90 transition-all cursor-pointer disabled:opacity-20"
+              title="Increase"
+            >
+              <ChevronUp className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={onDecrement}
+              disabled={disabled}
+              className="p-1 rounded text-white/40 hover:text-white hover:bg-white/10 active:scale-90 transition-all cursor-pointer disabled:opacity-20"
+              title="Decrease"
+            >
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -190,10 +242,16 @@ export default function PatientDonorsList() {
       return toast.warning(`Action not allowed: Current status is ${donorStatus}`);
     }
 
-    const request = await sendBloodRequest(selectedDonor._id, data);
+    const payload = {
+      ...data,
+      patientAge: Number(data.patientAge),
+      bottlesRequired: Number(data.bottlesRequired),
+    };
+
+    const request = await sendBloodRequest(selectedDonor._id, payload);
 
     if (request) {
-      setIsDialogOpen(false);
+      setDonorStatus('Pending');
       reset({
         message: '',
         patientAge: '',
@@ -206,7 +264,6 @@ export default function PatientDonorsList() {
         attendantName: '',
         attendantPhone: '',
       });
-      setSelectedDonor(null);
     }
   };
 
@@ -302,13 +359,14 @@ export default function PatientDonorsList() {
                 <th className="p-4 text-left font-bold uppercase tracking-widest text-[10px]">Donor</th>
                 <th className="p-4 text-left font-bold uppercase tracking-widest text-[10px]">Blood Group</th>
                 <th className="p-4 text-left font-bold uppercase tracking-widest text-[10px]">Location</th>
+                <th className="p-4 text-left font-bold uppercase tracking-widest text-[10px]">Availability</th>
                 <th className="p-4 text-center font-bold uppercase tracking-widest text-[10px]">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 relative">
               {donors.length === 0 && loading ? (
                 <tr>
-                  <td colSpan={4} className="p-24 text-center">
+                  <td colSpan={5} className="p-24 text-center">
                     <div className="flex flex-col items-center gap-4">
                       <div className="relative">
                         <div className="absolute inset-0 bg-donor/20 blur-xl rounded-full animate-pulse"></div>
@@ -355,6 +413,17 @@ export default function PatientDonorsList() {
                           <span className="text-xs font-bold uppercase tracking-tighter break-words whitespace-normal leading-relaxed">{d.location}</span>
                         </div>
                       </td>
+                      <td className="p-4">
+                        {d.availabilityStatus ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-500/10 border border-green-500/20 text-green-400">
+                            <CheckCircle2 className="w-3 h-3" /> Available
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-gray-500/10 border border-gray-500/20 text-gray-400">
+                            <XCircle className="w-3 h-3" /> Unavailable
+                          </span>
+                        )}
+                      </td>
                       <td className="p-4 text-center">
                         <button
                           onClick={() => handleView(d._id)}
@@ -368,7 +437,7 @@ export default function PatientDonorsList() {
                 </AnimatePresence>
               ) : (
                 <tr>
-                  <td colSpan={4} className="p-20 text-center">
+                  <td colSpan={5} className="p-20 text-center">
                     <div className="flex flex-col items-center gap-2 text-gray-500">
                       <ShieldAlert className="w-10 h-10 opacity-20" />
                       <p className="text-xs font-black uppercase tracking-widest">No donors found</p>
@@ -448,6 +517,15 @@ export default function PatientDonorsList() {
                   />
                   <InfoDetailBox variant="dashboard" icon={Phone} label="Phone" value={selectedDonor?.phone} sensitive={donorStatus !== 'Approved'} />
                   <InfoDetailBox variant="dashboard" icon={MapPin} label="City" value={selectedDonor?.location} span={1} />
+                  <InfoDetailBox variant="dashboard" icon={Clock} label="Account Created" value={fmtDate(selectedDonor?.createdAt)} />
+                  <InfoDetailBox
+                    variant="dashboard"
+                    icon={selectedDonor?.availabilityStatus ? CheckCircle2 : XCircle}
+                    label="Availability Status"
+                    value={selectedDonor?.availabilityStatus ? 'Available' : 'Unavailable'}
+                    color={selectedDonor?.availabilityStatus ? 'text-green-400 font-bold' : 'text-gray-400 font-bold'}
+                  />
+                  <InfoDetailBox variant="dashboard" icon={Activity} label="Last Updated" value={fmtDate(selectedDonor?.updatedAt)} span={3} />
                 </div>
                 <div className="space-y-10">
                   <div className="flex items-center gap-4">
@@ -509,17 +587,64 @@ export default function PatientDonorsList() {
                             <Controller
                               name="patientAge"
                               control={control}
-                              render={({ field }) => (
-                                <ModernRequestInput
-                                  id="req-age"
-                                  label="Patient Age"
-                                  type="number"
-                                  placeholder="Years"
-                                  value={field.value}
-                                  onChange={field.onChange}
-                                  disabled={loading}
-                                />
-                              )}
+                              render={({ field }) => {
+                                const handleInc = () => {
+                                  const curr = parseInt(field.value, 10);
+                                  const next = isNaN(curr) ? 1 : Math.min(120, curr + 1);
+                                  field.onChange(String(next));
+                                };
+                                const handleDec = () => {
+                                  const curr = parseInt(field.value, 10);
+                                  const next = isNaN(curr) ? 1 : Math.max(1, curr - 1);
+                                  field.onChange(String(next));
+                                };
+                                return (
+                                  <ModernRequestInput
+                                    id="req-age"
+                                    label="Patient Age"
+                                    type="text"
+                                    inputMode="numeric"
+                                    maxLength={3}
+                                    placeholder="Years (1-120)"
+                                    value={field.value}
+                                    showStepper={true}
+                                    onIncrement={handleInc}
+                                    onDecrement={handleDec}
+                                    onKeyDown={(e) => {
+                                      if (
+                                        ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key) ||
+                                        ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase()))
+                                      ) {
+                                        return;
+                                      }
+                                      if (e.key === 'ArrowUp') {
+                                        e.preventDefault();
+                                        handleInc();
+                                        return;
+                                      }
+                                      if (e.key === 'ArrowDown') {
+                                        e.preventDefault();
+                                        handleDec();
+                                        return;
+                                      }
+                                      if (!/^\d$/.test(e.key)) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onChange={(val) => {
+                                      const sanitized = val.replace(/\D/g, '').slice(0, 3);
+                                      field.onChange(sanitized);
+                                    }}
+                                    onPaste={(e) => {
+                                      e.preventDefault();
+                                      const pasted = e.clipboardData.getData('text');
+                                      const sanitized = pasted.replace(/\D/g, '').slice(0, 3);
+                                      field.onChange(sanitized);
+                                    }}
+                                    disabled={loading}
+                                  />
+                                );
+                              }}
                             />
                             {errors.patientAge && <p className="text-donor text-xs font-semibold mt-2">{errors.patientAge.message}</p>}
                           </div>
@@ -527,17 +652,64 @@ export default function PatientDonorsList() {
                             <Controller
                               name="bottlesRequired"
                               control={control}
-                              render={({ field }) => (
-                                <ModernRequestInput
-                                  id="req-bottles"
-                                  label="Bottles Needed"
-                                  type="number"
-                                  placeholder="Bottles"
-                                  value={field.value}
-                                  onChange={field.onChange}
-                                  disabled={loading}
-                                />
-                              )}
+                              render={({ field }) => {
+                                const handleInc = () => {
+                                  const curr = parseInt(field.value, 10);
+                                  const next = isNaN(curr) ? 1 : Math.min(20, curr + 1);
+                                  field.onChange(String(next));
+                                };
+                                const handleDec = () => {
+                                  const curr = parseInt(field.value, 10);
+                                  const next = isNaN(curr) ? 1 : Math.max(1, curr - 1);
+                                  field.onChange(String(next));
+                                };
+                                return (
+                                  <ModernRequestInput
+                                    id="req-bottles"
+                                    label="Bottles Needed"
+                                    type="text"
+                                    inputMode="numeric"
+                                    maxLength={2}
+                                    placeholder="Bottles (1-20)"
+                                    value={field.value}
+                                    showStepper={true}
+                                    onIncrement={handleInc}
+                                    onDecrement={handleDec}
+                                    onKeyDown={(e) => {
+                                      if (
+                                        ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key) ||
+                                        ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase()))
+                                      ) {
+                                        return;
+                                      }
+                                      if (e.key === 'ArrowUp') {
+                                        e.preventDefault();
+                                        handleInc();
+                                        return;
+                                      }
+                                      if (e.key === 'ArrowDown') {
+                                        e.preventDefault();
+                                        handleDec();
+                                        return;
+                                      }
+                                      if (!/^\d$/.test(e.key)) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                    onChange={(val) => {
+                                      const sanitized = val.replace(/\D/g, '').slice(0, 2);
+                                      field.onChange(sanitized);
+                                    }}
+                                    onPaste={(e) => {
+                                      e.preventDefault();
+                                      const pasted = e.clipboardData.getData('text');
+                                      const sanitized = pasted.replace(/\D/g, '').slice(0, 2);
+                                      field.onChange(sanitized);
+                                    }}
+                                    disabled={loading}
+                                  />
+                                );
+                              }}
                             />
                             {errors.bottlesRequired && <p className="text-donor text-xs font-semibold mt-2">{errors.bottlesRequired.message}</p>}
                           </div>
@@ -592,9 +764,38 @@ export default function PatientDonorsList() {
                               <ModernRequestInput
                                 id="req-attendant"
                                 label="Attendant Name"
+                                type="text"
+                                inputMode="text"
+                                maxLength={50}
                                 placeholder="Guardian / Attendant name"
                                 value={field.value}
-                                onChange={field.onChange}
+                                onChange={(val) => {
+                                  const sanitized = val.replace(/[^a-zA-Z\s]/g, '').slice(0, 50);
+                                  field.onChange(sanitized);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (
+                                    ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key) ||
+                                    ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase()))
+                                  ) {
+                                    return;
+                                  }
+                                  // Block numbers strictly
+                                  if (/^\d$/.test(e.key)) {
+                                    e.preventDefault();
+                                    return;
+                                  }
+                                  // Only allow alphabetic characters
+                                  if (!/^[a-zA-Z]$/.test(e.key)) {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                onPaste={(e) => {
+                                  e.preventDefault();
+                                  const pasted = e.clipboardData.getData('text');
+                                  const sanitized = pasted.replace(/[^a-zA-Z\s]/g, '').slice(0, 50);
+                                  field.onChange(sanitized);
+                                }}
                                 icon={User}
                                 disabled={loading}
                               />
@@ -610,9 +811,52 @@ export default function PatientDonorsList() {
                               <ModernRequestInput
                                 id="req-phone"
                                 label="Attendant Phone"
-                                placeholder="Phone number"
+                                type="tel"
+                                inputMode="tel"
+                                maxLength={16}
+                                placeholder="+923001234567 or 03001234567"
                                 value={field.value}
-                                onChange={field.onChange}
+                                onChange={(val) => {
+                                  let sanitized = val.replace(/[^\d+]/g, '');
+                                  if (sanitized.startsWith('+')) {
+                                    sanitized = '+' + sanitized.slice(1).replace(/\+/g, '');
+                                  } else {
+                                    sanitized = sanitized.replace(/\+/g, '');
+                                  }
+                                  field.onChange(sanitized.slice(0, 16));
+                                }}
+                                onKeyDown={(e) => {
+                                  if (
+                                    ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key) ||
+                                    ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(e.key.toLowerCase()))
+                                  ) {
+                                    return;
+                                  }
+                                  // Allow '+' only at position 0 if not already present
+                                  if (e.key === '+') {
+                                    const input = e.target;
+                                    if (input.selectionStart === 0 && !input.value.includes('+')) {
+                                      return;
+                                    }
+                                    e.preventDefault();
+                                    return;
+                                  }
+                                  // Block letters and non-digits
+                                  if (!/^\d$/.test(e.key)) {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                onPaste={(e) => {
+                                  e.preventDefault();
+                                  const pasted = e.clipboardData.getData('text');
+                                  let sanitized = pasted.replace(/[^\d+]/g, '');
+                                  if (sanitized.startsWith('+')) {
+                                    sanitized = '+' + sanitized.slice(1).replace(/\+/g, '');
+                                  } else {
+                                    sanitized = sanitized.replace(/\+/g, '');
+                                  }
+                                  field.onChange(sanitized.slice(0, 16));
+                                }}
                                 icon={Phone}
                                 disabled={loading}
                               />

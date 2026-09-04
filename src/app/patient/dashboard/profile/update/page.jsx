@@ -23,6 +23,7 @@ const profileSchema = yup.object().shape({
   hospitalName: yup.string().optional(),
   hospitalAddress: yup.string().optional(),
   hospitalLocation: yup.string().optional(),
+  availabilityStatus: yup.boolean(),
 });
 
 
@@ -57,6 +58,7 @@ export default function PatientProfileUpdatePage() {
       hospitalName: '',
       hospitalAddress: '',
       hospitalLocation: '',
+      availabilityStatus: false,
     },
   });
 
@@ -77,6 +79,7 @@ export default function PatientProfileUpdatePage() {
         hospitalName: user.hospitalName || '',
         hospitalAddress: user.hospitalAddress || '',
         hospitalLocation: user.hospitalLocation || '',
+        availabilityStatus: user.availabilityStatus || false,
       });
     }
   }, [user, reset]);
@@ -320,10 +323,35 @@ export default function PatientProfileUpdatePage() {
                     />
                   </div>
                 </div>
-
               </div>
             </div>
 
+            <div className="mt-8 pt-8 border-t border-white/5">
+              <label className="flex items-center gap-4 cursor-pointer group bg-[#121212] border border-white/5 p-6 rounded-2xl hover:border-blue-500/30 transition-all">
+                <div className="relative flex items-center">
+                  <Controller
+                    name="availabilityStatus"
+                    control={control}
+                    render={({ field }) => (
+                      <input
+                        {...field}
+                        type="checkbox"
+                        id="availabilityStatus"
+                        disabled={loading}
+                        checked={field.value}
+                        className="peer sr-only"
+                      />
+                    )}
+                  />
+                  <div className="w-14 h-7 bg-[#1a1a1a] rounded-full peer peer-checked:bg-green-500/20 transition-colors"></div>
+                  <div className="absolute left-1 top-1 w-5 h-5 bg-gray-500 rounded-full peer-checked:translate-x-7 peer-checked:bg-green-500 transition-transform"></div>
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white uppercase tracking-wider">Available to Receive</div>
+                  <div className="text-xs text-gray-500 mt-1">Turn on to show you are available to receive blood.</div>
+                </div>
+              </label>
+            </div>
           </form>
         </div>
       </div>

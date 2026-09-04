@@ -10,7 +10,7 @@ import { useDonorAuthStore } from '@/store/auth/authDonorStore';
 import { GenericSpinner as MiniSpinner } from '@/components/ui/Skeletons';
 import {
   Mail, MapPin, User, Activity, Droplets, Phone,
-  ShieldAlert, X, ShieldCheck, Search, Clock, Map, Hospital,
+  ShieldAlert, X, ShieldCheck, Search, Clock, Map, Hospital, CheckCircle2, XCircle,
 } from 'lucide-react';
 import InfoDetailBox from '@/components/common/InfoDetailBox';
 import { fmtDate } from '@/lib/fmtDate';
@@ -133,13 +133,14 @@ export default function PatientList() {
               <th className="p-4 text-left font-bold uppercase tracking-widest text-[10px]">Patient</th>
               <th className="p-4 text-left font-bold uppercase tracking-widest text-[10px]">Blood Group</th>
               <th className="p-4 text-left font-bold uppercase tracking-widest text-[10px]">Location</th>
+              <th className="p-4 text-left font-bold uppercase tracking-widest text-[10px]">Availability</th>
               <th className="p-4 text-center font-bold uppercase tracking-widest text-[10px]">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {patients.length === 0 && loading ? (
               <tr>
-                <td colSpan={4} className="p-24 text-center">
+                <td colSpan={5} className="p-24 text-center">
                   <MiniSpinner size={48} className="text-highlight/80 mx-auto" />
                 </td>
               </tr>
@@ -164,6 +165,17 @@ export default function PatientList() {
                     <td className="p-4 text-xs text-gray-400 break-words whitespace-normal max-w-[220px] min-w-[150px] uppercase font-bold tracking-tighter">
                       {p.location || '—'}
                     </td>
+                    <td className="p-4">
+                      {p.availabilityStatus ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-500/10 border border-green-500/20 text-green-400">
+                          <CheckCircle2 className="w-3 h-3" /> Available
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-gray-500/10 border border-gray-500/20 text-gray-400">
+                          <XCircle className="w-3 h-3" /> Unavailable
+                        </span>
+                      )}
+                    </td>
                     <td className="p-4 text-center">
                       <button
                         onClick={() => handleView(p._id)}
@@ -179,7 +191,7 @@ export default function PatientList() {
               </AnimatePresence>
             ) : (
               <tr>
-                <td colSpan={4} className="p-20 text-center">
+                <td colSpan={5} className="p-20 text-center">
                   <div className="flex flex-col items-center gap-2 text-gray-500">
                     <ShieldAlert className="w-10 h-10 opacity-20" />
                     <p className="text-xs font-black uppercase tracking-widest">No patients found</p>
@@ -252,11 +264,18 @@ export default function PatientList() {
                   />
                   <InfoDetailBox variant="dashboard" icon={Phone} label="Phone" value={selectedPatient?.phone} sensitive={patientStatus !== 'Approved'} />
                   <InfoDetailBox variant="dashboard" icon={MapPin} label="City / Location" value={selectedPatient?.location} />
-                  <InfoDetailBox variant="dashboard" icon={Clock} label="Registered On" value={fmtDate(selectedPatient?.createdAt)} />
+                  <InfoDetailBox variant="dashboard" icon={Clock} label="Account Created" value={fmtDate(selectedPatient?.createdAt)} />
                   <InfoDetailBox variant="dashboard" icon={Map} label="Full Address" value={selectedPatient?.address} span={3} />
                   <InfoDetailBox variant="dashboard" icon={Hospital} label="Hospital Name" value={selectedPatient?.hospitalName} />
                   <InfoDetailBox variant="dashboard" icon={MapPin} label="Hospital Location" value={selectedPatient?.hospitalLocation} />
                   <InfoDetailBox variant="dashboard" icon={Map} label="Hospital Address" value={selectedPatient?.hospitalAddress} />
+                  <InfoDetailBox
+                    variant="dashboard"
+                    icon={selectedPatient?.availabilityStatus ? CheckCircle2 : XCircle}
+                    label="Availability Status"
+                    value={selectedPatient?.availabilityStatus ? 'Available' : 'Unavailable'}
+                    color={selectedPatient?.availabilityStatus ? 'text-green-400 font-bold' : 'text-gray-400 font-bold'}
+                  />
                   <InfoDetailBox variant="dashboard" icon={Activity} label="Last Updated" value={fmtDate(selectedPatient?.updatedAt)} span={3} />
                 </div>
 

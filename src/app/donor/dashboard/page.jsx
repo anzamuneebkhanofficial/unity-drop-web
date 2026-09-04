@@ -4,7 +4,7 @@
 import { useEffect } from 'react';
 import { useDonorAuthStore } from '@/store/auth/authDonorStore';
 import DashboardNotice from '@/features/dashboard/dashboard-notice/DashboardNotice';
-import { ShieldCheck, Droplet, Activity } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Droplet, Activity } from 'lucide-react';
 
 import SystemHealthCard from '@/components/common/SystemHealthCard';
 
@@ -24,6 +24,9 @@ export default function DonorDashboard() {
     fetchStats();
     getDonor();
   }, [fetchStats, getDonor]);
+
+  const isAvailable = Boolean(user?.availabilityStatus);
+
   const stats = [
     { label: 'Total Requests', value: totalRequests, color: 'text-blue-500', hover: 'hover:border-blue-500/30' },
     { label: 'Pending Requests', value: pendingRequests, color: 'text-yellow-500', hover: 'hover:border-yellow-500/30' },
@@ -50,25 +53,45 @@ export default function DonorDashboard() {
       </div>
       <section className="space-y-6">
         <div className="flex items-center gap-3">
-          <div className="h-5 w-1 bg-emerald-500 rounded-full"></div>
+          <div className={`h-5 w-1 rounded-full ${isAvailable ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
           <h2 className="text-lg font-black uppercase tracking-widest text-white italic">My Status & Profile</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div
             style={{ animationDelay: '50ms' }}
-            className="bg-surface-2 border border-white/5 rounded-xl p-6 shadow-xl transition-all duration-300 hover:border-emerald-500/30 group relative overflow-hidden flex flex-col justify-between h-36 animate-fade-up opacity-0"
+            className={`bg-surface-2 border border-white/5 rounded-xl p-6 shadow-xl transition-all duration-300 ${
+              isAvailable ? 'hover:border-emerald-500/30' : 'hover:border-rose-500/30'
+            } group relative overflow-hidden flex flex-col justify-between h-36 animate-fade-up opacity-0`}
           >
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-[9px] font-black text-text-dim uppercase tracking-[0.2em]">Donor Status</h3>
-              <ShieldCheck className="w-5 h-5 text-emerald-500/50 group-hover:text-emerald-500 transition-colors" />
+              {isAvailable ? (
+                <ShieldCheck className="w-5 h-5 text-emerald-500/50 group-hover:text-emerald-500 transition-colors" />
+              ) : (
+                <ShieldAlert className="w-5 h-5 text-rose-500/50 group-hover:text-rose-500 transition-colors" />
+              )}
             </div>
-            <div className="flex items-center gap-3">
-              <div className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
-              <p className="text-3xl font-black text-white italic tracking-tighter uppercase group-hover:text-emerald-500 transition-colors">
-                Available
-              </p>
-            </div>
+            {loading && user == null ? (
+              <div className="h-9 w-28 bg-white/5 rounded-md animate-pulse mt-1"></div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div
+                  className={`h-3 w-3 rounded-full ${
+                    isAvailable
+                      ? 'bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]'
+                      : 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]'
+                  }`}
+                ></div>
+                <p
+                  className={`text-3xl font-black text-white italic tracking-tighter uppercase transition-colors ${
+                    isAvailable ? 'group-hover:text-emerald-500' : 'group-hover:text-rose-500'
+                  }`}
+                >
+                  {isAvailable ? 'Available' : 'Unavailable'}
+                </p>
+              </div>
+            )}
           </div>
           <div
             style={{ animationDelay: '100ms' }}
