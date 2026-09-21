@@ -41,10 +41,10 @@ export async function POST(req) {
       },
     });
 
-    console.log(`✅ [Vercel Email Bridge] Email sent to ${to}: ${info.messageId}`);
+    console.log(`[Vercel Email Bridge] Email sent to ${to}: ${info.messageId}`);
     return NextResponse.json({ success: true, messageId: info.messageId });
   } catch (error) {
-    console.error('❌ [Vercel Email Bridge] Error sending email:', error);
+    console.error(' [Vercel Email Bridge] Error sending email:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to send email' },
       { status: 500 }

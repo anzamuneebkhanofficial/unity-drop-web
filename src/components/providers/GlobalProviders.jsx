@@ -28,15 +28,13 @@ if (typeof window !== 'undefined') {
     recentToasts.push({ text: message, type, time: now });
     return false;
   };
-
-  // Safely wrap all sonner toast methods to prevent duplicates
   const methodsToPatch = ['success', 'error', 'warning', 'info', 'message'];
   methodsToPatch.forEach((method) => {
     const original = toast[method];
     if (typeof original === 'function') {
       toast[method] = function (message, ...args) {
         if (isDuplicate(message, method)) {
-          return ''; // Suppress duplicate toast
+          return '';
         }
         return original.call(toast, message, ...args);
       };

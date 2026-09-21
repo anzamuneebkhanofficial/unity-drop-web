@@ -14,7 +14,7 @@ import { Eye } from 'lucide-react';
 export default function FeedbackMessageViewer({ message = '', maxLength = 150 }) {
   const [open, setOpen] = useState(false);
 
-  // Guarantee a string even if null is passed
+
   const safeMessage = message || '';
   const isLong = safeMessage.length > maxLength;
   const displayMessage = isLong ? safeMessage.slice(0, maxLength) + '...' : safeMessage;

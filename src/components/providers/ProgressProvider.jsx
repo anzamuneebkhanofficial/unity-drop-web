@@ -19,7 +19,7 @@ export default function ProgressProvider() {
             if (!anchor) return;
             const href = anchor.getAttribute('href');
             if (!href) return;
-            // Ignore external links, links with target="_blank"
+            // Ignore external links with target=_blank
             if (
                 anchor.target === '_blank' ||
                 (href.startsWith('http') && !href.startsWith(window.location.origin)) ||
@@ -33,7 +33,7 @@ export default function ProgressProvider() {
             ) {
                 return;
             }
-            // Ignore if same path and same query parameters to avoid duplicate loader on same page
+            // Ignore avoid duplicate loader on same page
             try {
                 const targetUrl = new URL(href, window.location.href);
                 const currentUrl = new URL(window.location.href);

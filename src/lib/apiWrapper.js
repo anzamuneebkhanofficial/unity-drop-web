@@ -6,7 +6,7 @@ import { performFullCleanup } from './authHelpers';
 const TOAST_DEBOUNCE_MS = 1500;
 const recentToasts = new Map();
 
-// Track concurrent active requests to prevent progress bar race conditions
+// Track requests to prevent progress bar race conditions
 let activeRequests = 0;
 const startProgress = () => {
   if (activeRequests === 0) {
@@ -28,7 +28,7 @@ const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Request Interceptor: starts progress without any artificial blocking or delays
+// Request starts progress without any blocking or delays
 apiClient.interceptors.request.use((config) => {
   startProgress();
   return config;
@@ -42,13 +42,13 @@ export const setApiRouter = (router) => {
 const getRoleCookie = () =>
   typeof document !== 'undefined'
     ? document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('role='))
-        ?.split('=')[1]
-        ?.toLowerCase()
+      .split('; ')
+      .find((row) => row.startsWith('role='))
+      ?.split('=')[1]
+      ?.toLowerCase()
     : null;
 
-// Response Interceptor: handles success, cleanup, and standardized error responses
+// Response : handles success, cleanup, and standardized error responses
 apiClient.interceptors.response.use(
   (response) => {
     stopProgress();
@@ -82,7 +82,7 @@ apiClient.interceptors.response.use(
       error.response?.data?.errors?.[0]?.msg ||
       'An unexpected error occurred';
 
-    // 401 Unauthorized handling: clean state and redirect to appropriate login route
+    // 401 Unauthorized handle: clean state and redirect to login route
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
         const path = window.location.pathname;

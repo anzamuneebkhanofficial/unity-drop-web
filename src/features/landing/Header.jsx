@@ -5,7 +5,18 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Heart, Menu, LogIn, UserPlus, LogOut, LayoutDashboard, User, ShieldCheck, X, ChevronRight } from 'lucide-react';
+import {
+  Heart,
+  Menu,
+  LogIn,
+  UserPlus,
+  LogOut,
+  LayoutDashboard,
+  User,
+  ShieldCheck,
+  X,
+  ChevronRight,
+} from 'lucide-react';
 
 import {
   DropdownMenu,
@@ -51,7 +62,10 @@ const Header = () => {
   let role = null;
   let logoutFunc = null;
 
-  const userRoleCookie = isMounted && typeof document !== 'undefined' ? Cookies.get('role')?.toLowerCase() : null;
+  const userRoleCookie =
+    isMounted && typeof document !== 'undefined'
+      ? Cookies.get('role')?.toLowerCase()
+      : null;
 
   if (userRoleCookie) {
     if (donorUser && userRoleCookie === 'donor') {
@@ -92,12 +106,14 @@ const Header = () => {
     return '/';
   };
   return (
-    <header className="bg-bg/40 backdrop-blur-[40px] sticky top-0 z-[100] border-b border-white/5 transition-all duration-300 w-full">
+    <header className="bg-bg/40 backdrop-blur-[40px] sticky top-0 z-[100] transition-all duration-300 w-full">
       <div className="flex justify-between items-center px-6 lg:px-12 py-4 gap-4 lg:gap-8 w-full max-w-[2000px] mx-auto overflow-x-hidden">
         <Link href="/" className="flex items-center gap-4 group flex-shrink-0">
           <div className="relative">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-donor to-donor/80 flex items-center justify-center border border-white/10 group-hover:scale-105 transition-all duration-300 ease-out">
-              <span className="text-white font-bold text-xl tracking-tight">U</span>
+              <span className="text-white font-bold text-xl tracking-tight">
+                U
+              </span>
             </div>
           </div>
           <div className="flex flex-col">
@@ -154,15 +170,23 @@ const Header = () => {
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button
-                  className={`rounded-full px-5 py-2.5 font-semibold transition-all duration-300 border h-auto ${isSuperAdmin
-                    ? 'bg-highlight/10 hover:bg-highlight/20 border-highlight/40 text-highlight'
-                    : 'bg-surface-3 hover:bg-surface-2 border-white/10 text-white'
-                    }`}
+                  className={`rounded-full px-5 py-2.5 font-semibold transition-all duration-300 border h-auto ${
+                    isSuperAdmin
+                      ? 'bg-highlight/10 hover:bg-highlight/20 border-highlight/40 text-highlight'
+                      : 'bg-surface-3 hover:bg-surface-2 border-white/10 text-white'
+                  }`}
                 >
-                  {isSuperAdmin ? <ShieldCheck className="w-4 h-4 mr-2" /> : <User className={`w-4 h-4 mr-2 ${role === 'Donor' ? 'text-donor' : 'text-highlight'}`} />}
-                  <span className="max-w-[100px] truncate">{activeUser.fullName || 'User'}</span>
+                  {isSuperAdmin ? (
+                    <ShieldCheck className="w-4 h-4 mr-2" />
+                  ) : (
+                    <User
+                      className={`w-4 h-4 mr-2 ${role === 'Donor' ? 'text-donor' : 'text-highlight'}`}
+                    />
+                  )}
+                  <span className="max-w-[100px] truncate">
+                    {activeUser.fullName || 'User'}
+                  </span>
                 </Button>
-
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
@@ -173,16 +197,26 @@ const Header = () => {
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-semibold leading-none text-white flex items-center gap-2">
                       {activeUser.fullName}
-                      {isSuperAdmin && <ShieldCheck className="w-3 h-3 text-highlight" />}
+                      {isSuperAdmin && (
+                        <ShieldCheck className="w-3 h-3 text-highlight" />
+                      )}
                     </p>
-                    <p className={`text-xs font-medium mt-1 ${role === 'Donor' ? 'text-donor' : 'text-highlight'}`}>
+                    <p
+                      className={`text-xs font-medium mt-1 ${role === 'Donor' ? 'text-donor' : 'text-highlight'}`}
+                    >
                       {role}
                     </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-white/5 my-1" />
-                <DropdownMenuItem asChild className={`cursor-pointer rounded-lg px-3 py-2.5 font-medium ${role === 'Donor' ? 'focus:bg-donor' : 'focus:bg-highlight'} focus:text-black`}>
-                  <Link href={getDashboardLink()} className="w-full flex items-center">
+                <DropdownMenuItem
+                  asChild
+                  className={`cursor-pointer rounded-lg px-3 py-2.5 font-medium ${role === 'Donor' ? 'focus:bg-donor' : 'focus:bg-highlight'} focus:text-black`}
+                >
+                  <Link
+                    href={getDashboardLink()}
+                    className="w-full flex items-center"
+                  >
                     <LayoutDashboard className="w-4 h-4 mr-2" />
                     Dashboard
                   </Link>
@@ -201,7 +235,10 @@ const Header = () => {
             <>
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="text-text-muted hover:text-white hover:bg-white/10 font-bold px-4">
+                  <Button
+                    variant="ghost"
+                    className="text-text-muted hover:text-white hover:bg-white/10 font-bold px-4"
+                  >
                     Log In
                   </Button>
                 </DropdownMenuTrigger>
@@ -210,14 +247,29 @@ const Header = () => {
                   sideOffset={22}
                   className="bg-surface border border-white/10 text-text-muted w-52 shadow-2xl rounded-xl p-1.5 z-[999] animate-in fade-in zoom-in-95 duration-200"
                 >
-                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium">
-                    <Link href="/patient/login" className="w-full block">Patient Login</Link>
+                  <DropdownMenuItem
+                    asChild
+                    className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium"
+                  >
+                    <Link href="/patient/login" className="w-full block">
+                      Patient Login
+                    </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium">
-                    <Link href="/donor/login" className="w-full block">Donor Login</Link>
+                  <DropdownMenuItem
+                    asChild
+                    className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium"
+                  >
+                    <Link href="/donor/login" className="w-full block">
+                      Donor Login
+                    </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium">
-                    <Link href="/admin/login" className="w-full block">Admin Login</Link>
+                  <DropdownMenuItem
+                    asChild
+                    className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium"
+                  >
+                    <Link href="/admin/login" className="w-full block">
+                      Admin Login
+                    </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -233,14 +285,29 @@ const Header = () => {
                   sideOffset={22}
                   className="bg-surface border border-white/10 text-text-muted w-56 shadow-2xl rounded-xl p-1.5 z-[999] animate-in fade-in zoom-in-95 duration-200"
                 >
-                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium">
-                    <Link href="/patient/register" className="w-full block">Register as Patient</Link>
+                  <DropdownMenuItem
+                    asChild
+                    className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium"
+                  >
+                    <Link href="/patient/register" className="w-full block">
+                      Register as Patient
+                    </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium">
-                    <Link href="/donor/register" className="w-full block">Register as Donor</Link>
+                  <DropdownMenuItem
+                    asChild
+                    className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium"
+                  >
+                    <Link href="/donor/register" className="w-full block">
+                      Register as Donor
+                    </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium">
-                    <Link href="/admin/register" className="w-full block">Register as Admin</Link>
+                  <DropdownMenuItem
+                    asChild
+                    className="focus:bg-highlight focus:text-black cursor-pointer rounded-lg px-3 py-2.5 font-medium"
+                  >
+                    <Link href="/admin/register" className="w-full block">
+                      Register as Admin
+                    </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -252,23 +319,34 @@ const Header = () => {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-white focus:outline-none p-2 rounded-md hover:bg-white/10"
           >
-            <Menu className={`w-6 h-6 transition-transform duration-300 ${isMenuOpen ? 'rotate-90 scale-0' : 'rotate-0 scale-100'}`} />
+            <Menu
+              className={`w-6 h-6 transition-transform duration-300 ${isMenuOpen ? 'rotate-90 scale-0' : 'rotate-0 scale-100'}`}
+            />
           </button>
         </div>
       </div>
 
       <div
-        className={`lg:hidden fixed inset-0 z-[9999] bg-[#030303] w-screen h-full min-h-[100dvh] flex flex-col transition-opacity duration-300 ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'
-          }`}
+        className={`lg:hidden fixed inset-0 z-[9999] bg-[#030303] w-screen h-full min-h-[100dvh] flex flex-col transition-opacity duration-300 ${
+          isMenuOpen
+            ? 'opacity-100 visible'
+            : 'opacity-0 invisible pointer-events-none'
+        }`}
       >
         <div className="flex flex-col h-full relative overflow-hidden">
           <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(var(--donor-hex),0.08),transparent_70%)] pointer-events-none"></div>
           <div className="flex justify-between items-center px-6 py-4 border-b border-white/5">
-            <Link href="/" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-4 group">
+            <Link
+              href="/"
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-4 group"
+            >
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-donor to-donor/60 flex items-center justify-center border border-white/10">
                 <span className="text-white font-black text-xl italic">U</span>
               </div>
-              <span className="font-black text-xl tracking-tighter text-white">UNITYDROP</span>
+              <span className="font-black text-xl tracking-tighter text-white">
+                UNITYDROP
+              </span>
             </Link>
             <button
               onClick={() => setIsMenuOpen(false)}
@@ -335,11 +413,19 @@ const Header = () => {
                 <div className="space-y-6">
                   <div className="flex items-center space-x-4 p-6 bg-surface-2 border border-white/10 rounded-[2rem]">
                     <div className="w-16 h-16 rounded-full bg-highlight flex items-center justify-center text-black shadow-2xl">
-                      {isSuperAdmin ? <ShieldCheck className="w-8 h-8" /> : <User className="w-8 h-8" />}
+                      {isSuperAdmin ? (
+                        <ShieldCheck className="w-8 h-8" />
+                      ) : (
+                        <User className="w-8 h-8" />
+                      )}
                     </div>
                     <div>
-                      <p className="text-xl font-black text-white italic uppercase tracking-tighter">{activeUser.fullName}</p>
-                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-highlight mt-1">{role}</p>
+                      <p className="text-xl font-black text-white italic uppercase tracking-tighter">
+                        {activeUser.fullName}
+                      </p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-highlight mt-1">
+                        {role}
+                      </p>
                     </div>
                   </div>
                   <Link
@@ -351,7 +437,10 @@ const Header = () => {
                     Go to Dashboard
                   </Link>
                   <button
-                    onClick={() => { handleLogout(); setIsMenuOpen(false); }}
+                    onClick={() => {
+                      handleLogout();
+                      setIsMenuOpen(false);
+                    }}
                     className="flex items-center justify-center w-full py-6 bg-bg text-donor font-black uppercase tracking-widest rounded-2xl border border-donor/30"
                   >
                     <LogOut className="w-5 h-5 mr-3" />
@@ -361,26 +450,48 @@ const Header = () => {
               ) : (
                 <div className="space-y-8">
                   <div className="grid grid-cols-1 gap-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-text-dim px-2">Access Portals</p>
-                    <Link href="/patient/login" onClick={() => setIsMenuOpen(false)} className="py-5 px-8 rounded-2xl bg-surface-2 border border-white/5 text-white font-bold flex justify-between items-center group">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-text-dim px-2">
+                      Access Portals
+                    </p>
+                    <Link
+                      href="/patient/login"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="py-5 px-8 rounded-2xl bg-surface-2 border border-white/5 text-white font-bold flex justify-between items-center group"
+                    >
                       Patient Login
                       <ChevronRight className="w-5 h-5 text-text-dim group-hover:text-highlight transition-colors" />
                     </Link>
-                    <Link href="/donor/login" onClick={() => setIsMenuOpen(false)} className="py-5 px-8 rounded-2xl bg-surface-2 border border-white/5 text-white font-bold flex justify-between items-center group">
+                    <Link
+                      href="/donor/login"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="py-5 px-8 rounded-2xl bg-surface-2 border border-white/5 text-white font-bold flex justify-between items-center group"
+                    >
                       Donor Login
                       <ChevronRight className="w-5 h-5 text-text-dim group-hover:text-donor transition-colors" />
                     </Link>
-                    <Link href="/admin/login" onClick={() => setIsMenuOpen(false)} className="py-5 px-8 rounded-2xl bg-surface-2 border border-white/5 text-white font-bold flex justify-between items-center group">
+                    <Link
+                      href="/admin/login"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="py-5 px-8 rounded-2xl bg-surface-2 border border-white/5 text-white font-bold flex justify-between items-center group"
+                    >
                       Admin Login
                       <ChevronRight className="w-5 h-5 text-text-dim group-hover:text-white transition-colors" />
                     </Link>
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 pt-4">
-                    <Link href="/patient/register" onClick={() => setIsMenuOpen(false)} className="py-5 px-8 rounded-2xl bg-highlight text-black font-black uppercase tracking-widest text-center shadow-2xl">
+                    <Link
+                      href="/patient/register"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="py-5 px-8 rounded-2xl bg-highlight text-black font-black uppercase tracking-widest text-center shadow-2xl"
+                    >
                       Patient Sign Up
                     </Link>
-                    <Link href="/donor/register" onClick={() => setIsMenuOpen(false)} className="py-5 px-8 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-center shadow-2xl">
+                    <Link
+                      href="/donor/register"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="py-5 px-8 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-center shadow-2xl"
+                    >
                       Donor Sign Up
                     </Link>
                   </div>

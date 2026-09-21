@@ -303,7 +303,7 @@ export default function AdminManagementList() {
                               <span className="text-xs font-black text-white uppercase tracking-tight break-words whitespace-normal">{admin.fullName}</span>
                               {admin._id === AdminCaught?._id && <span className="text-[8px] px-1.5 py-0.5 bg-highlight text-black rounded font-black uppercase shrink-0">You</span>}
                             </div>
-                            <span className="text-[9px] text-text-dim lowercase tracking-tighter block break-all">{admin.email}</span>
+                            <span className="text-[10px] text-text-dim lowercase tracking-tighter block break-all">{admin.email}</span>
                           </div>
                         </div>
                       </td>
@@ -348,8 +348,8 @@ export default function AdminManagementList() {
                               onClick={() => handlePrivilege(admin._id, admin.canDelete)}
                               disabled={privilegeLoading === admin._id}
                               className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all hover:opacity-80 ${admin.canDelete
-                                  ? 'bg-purple-500/10 border-purple-500/20 text-purple-400'
-                                  : 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                                ? 'bg-purple-500/10 border-purple-500/20 text-purple-400'
+                                : 'bg-blue-500/10 border-blue-500/20 text-blue-400'
                                 }`}
                             >
                               {privilegeLoading === admin._id ? (
@@ -518,8 +518,8 @@ export default function AdminManagementList() {
                           onClick={() => handlePrivilege(selectedAdmin._id, selectedAdmin.canDelete)}
                           disabled={privilegeLoading === selectedAdmin._id}
                           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 ${selectedAdmin.canDelete
-                              ? 'bg-purple-500/20 border border-purple-500/30 text-purple-300 hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-300'
-                              : 'bg-blue-500/20 border border-blue-500/30 text-blue-300 hover:bg-purple-500/20 hover:border-purple-500/30 hover:text-purple-300'
+                            ? 'bg-purple-500/20 border border-purple-500/30 text-purple-300 hover:bg-red-500/20 hover:border-red-500/30 hover:text-red-300'
+                            : 'bg-blue-500/20 border border-blue-500/30 text-blue-300 hover:bg-purple-500/20 hover:border-purple-500/30 hover:text-purple-300'
                             }`}
                         >
                           {privilegeLoading === selectedAdmin._id ? (
